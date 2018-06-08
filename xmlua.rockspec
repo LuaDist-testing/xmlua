@@ -1,6 +1,6 @@
 -- -*- lua -*-
 
-local package_version = "1.0.1"
+local package_version = "1.0.2"
 
 package = "xmlua"
 version = package_version .. "-0"
@@ -48,9 +48,11 @@ build = {
     ["xmlua.libxml2.xmlsave"] = "xmlua/libxml2/xmlsave.lua",
     ["xmlua.libxml2.xmlstring"] = "xmlua/libxml2/xmlstring.lua",
     ["xmlua.libxml2.xpath"] = "xmlua/libxml2/xpath.lua",
+    ["xmlua.node"] = "xmlua/node.lua",
     ["xmlua.node-set"] = "xmlua/node-set.lua",
     ["xmlua.searchable"] = "xmlua/searchable.lua",
     ["xmlua.serializable"] = "xmlua/serializable.lua",
+    ["xmlua.text"] = "xmlua/text.lua",
     ["xmlua.xml"] = "xmlua/xml.lua"
   },
   copy_directories = {
