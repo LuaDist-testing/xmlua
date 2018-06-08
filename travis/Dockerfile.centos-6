@@ -1,0 +1,24 @@
+FROM centos:6
+
+RUN \
+  yum install -y epel-release
+RUN \
+  yum install -y \
+    libxml2 \
+    luajit \
+    luarocks \
+    unzip
+RUN \
+  luarocks install \
+    luaunit
+
+RUN \
+  useradd --user-group --create-home xmlua
+
+COPY . /home/xmlua/xmlua
+RUN chown -R xmlua:xmlua ~xmlua/xmlua
+
+USER xmlua
+WORKDIR /home/xmlua/xmlua
+
+CMD test/run-test.lua
