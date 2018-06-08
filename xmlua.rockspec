@@ -1,10 +1,9 @@
-# -*- lua -*-
+-- -*- lua -*-
+
+local package_version = "1.0.0"
 
 package = "xmlua"
-version = "1.0.0-0"
-source = {
-  url = "https://github.com/clear-code/xmlua/archive/1.0.0.zip"
-}
+version = package_version .. "-0"
 description = {
   summary = "XMLua is a Lua library for processing XML and HTML",
   detailed = [[
@@ -12,21 +11,27 @@ description = {
     XMLua provides user-friendly API instead of low-level libxml2 API.
     The user-friendly API is implemented top of low-level libxml2 API.
   ]],
-  license = "MIT"
+  license = "MIT",
   homepage = "https://clear-code.github.io/xmlua/",
-  issues_url = "https://github.com/clear-code/xmlua/issues",
+  -- Since 3.0
+  -- issues_url = "https://github.com/clear-code/xmlua/issues",
   maintainer = "Horimoto Yasuhiro <horimoto@clear-code.com> and Kouhei Sutou <kou@clear-code.com>",
-  labels = ["xml"],
+  -- Since 3.0
+  -- labels = {"xml"},
 }
 external_dependencies = {
   libxml2 = {
     library = "xml2"
   }
 }
+source = {
+  url = "https://github.com/clear-code/xmlua/archive/" .. package_version .. ".zip",
+  dir = package .. "-" .. package_version,
+}
 build = {
   type = "builtin",
   modules = {
-    xmlua = "xmlua.lua",
+    ["xmlua"] = "xmlua.lua",
     ["xmlua.document"] = "xmlua/document.lua",
     ["xmlua.element"] = "xmlua/element.lua",
     ["xmlua.html"] = "xmlua/html.lua",
@@ -34,7 +39,7 @@ build = {
     ["xmlua.libxml2.dict"] = "xmlua/libxml2/dict.lua",
     ["xmlua.libxml2.global"] = "xmlua/libxml2/global.lua",
     ["xmlua.libxml2.hash"] = "xmlua/libxml2/hash.lua",
-    ["xmlua.libxml2.htmlparser"] = "xmlua/libxml2/htmlparser.lua",
+    ["xmlua.libxml2.html-parser"] = "xmlua/libxml2/html-parser.lua",
     ["xmlua.libxml2.memory"] = "xmlua/libxml2/memory.lua",
     ["xmlua.libxml2.parser"] = "xmlua/libxml2/parser.lua",
     ["xmlua.libxml2.parser-internals"] = "xmlua/libxml2/parser-internals.lua",

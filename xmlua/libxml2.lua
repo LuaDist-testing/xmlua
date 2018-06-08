@@ -10,7 +10,7 @@ require("xmlua.libxml2.tree")
 require("xmlua.libxml2.valid")
 require("xmlua.libxml2.parser")
 require("xmlua.libxml2.parser-internals")
-require("xmlua.libxml2.htmlparser")
+require("xmlua.libxml2.html-parser")
 require("xmlua.libxml2.xmlsave")
 require("xmlua.libxml2.xpath")
 
@@ -33,6 +33,9 @@ if __xmlFreeIsAvailable() then
 else
   xmlFree = xml2.xmlFree
 end
+
+libxml2.xmlInitParser = xml2.xmlInitParser
+libxml2.xmlCleanupParser = xml2.xmlCleanupParser
 
 function libxml2.htmlCreateMemoryParserCtxt(html)
   local context = xml2.htmlCreateMemoryParserCtxt(html, #html)
