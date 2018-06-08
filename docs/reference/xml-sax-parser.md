@@ -200,14 +200,14 @@ local xml = [[
 -- If you want to parse text in a file,
 -- you need to read file content by yourself.
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
 parser.end_document = function()
   print("End document")
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -587,11 +587,12 @@ Entity content: This is test.
 It registers user call back function as below.
 
 ```lua
-local listener = {}
-function listener:internal_subset(name, external_id, system_id)
+local parser = xmlua.XMLSAXParser.new()
+parser.internal_subset = function(name,
+                                  external_id,
+                                  system_id)
   -- You want to execute code
 end
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 ```
 
 Registered function is called, when parse internal subset.
@@ -618,8 +619,10 @@ local xml = [[
 -- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
-local listener = {}
-function listener:internal_subset(name, external_id, system_id)
+local parser = xmlua.XMLSAXParser.new()
+parser.internal_subset = function(name,
+                                  external_id,
+                                  system_id)
   print("Internal subset name: " .. name)
   if external_id ~= nil then
     print("Internal subset external id: " .. external_id)
@@ -628,8 +631,6 @@ function listener:internal_subset(name, external_id, system_id)
     print("Internal subset system id: " .. system_id)
   end
 end
-
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
@@ -650,11 +651,12 @@ Internal subset name: example
 It registers user call back function as below.
 
 ```lua
-local listener = {}
-function listener:external_subset(name, external_id, system_id)
+local parser = xmlua.XMLSAXParser.new()
+parser.external_subset = function(name,
+                                  external_id,
+                                  system_id)
   -- You want to execute code
 end
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 ```
 
 Registered function is called, when parse external subset.
@@ -680,8 +682,10 @@ local xml = [[
 -- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
-local listener = {}
-function listener:external_subset(name, external_id, system_id)
+local parser = xmlua.XMLSAXParser.new()
+parser.external_subset = function(name,
+                                  external_id,
+                                  system_id)
   print("External subset name: " .. name)
   if external_id ~= nil then
     print("External subset external id: " .. external_id)
@@ -690,8 +694,6 @@ function listener:external_subset(name, external_id, system_id)
     print("External subset system id: " .. system_id)
   end
 end
-
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
@@ -714,11 +716,10 @@ External subset system id: http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.d
 It registers user call back function as below.
 
 ```lua
-local listener = {}
-function listener:reference(entity_name)
+local parser = xmlua.XMLSAXParser.new()
+parser.reference = function(entity_name)
   -- You want to execute code
 end
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 ```
 
 Registered function is called, when parse reference.
@@ -745,12 +746,10 @@ local xml = [[
 -- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
-local listener = {}
-function listener:reference(entity_name)
+local parser = xmlua.XMLSAXParser.new()
+parser.reference = function(entity_name)
   print("Reference entity name: " .. entity_name)
 end
-
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
@@ -797,7 +796,7 @@ local xml = [[
 -- If you want to parse text in a file,
 -- you need to read file content by yourself.
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
@@ -805,7 +804,7 @@ parser.processing_instruction = function(target, data_list)
   print("Processing instruction target: "..target)
   print("Processing instruction data: "..data_list)
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -854,14 +853,14 @@ local xml = [=[
 -- If you want to parse text in a file,
 -- you need to read file content by yourself.
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
 parser.cdata_block = function(cdata_block)
   print("CDATA block: "..cdata_block)
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -907,14 +906,14 @@ local xml = [[
 -- If you want to parse text in a file,
 -- you need to read file content by yourself.
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
 parser.ignorable_whitespace = function(ignorable_whitespace)
   print("Ignorable whitespace: ".."\""..ignorable_whitespace.."\"")
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -961,14 +960,14 @@ local xml = [[
 -- If you want to parse text in a file,
 -- you need to read file content by yourself.
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
 parser.comment = function(comment)
   print("Comment: "..comment)
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -1018,7 +1017,7 @@ local xml = [[
 -- If you want to parse text in a file,
 -- you need to read file content by yourself.
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
@@ -1060,7 +1059,7 @@ parser.start_element = function(local_name,
   end
 end
 
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -1165,7 +1164,7 @@ Example:
 local xmlua = require("xmlua")
 
 -- XML to be parsed
-local html = [[
+local xml = [[
 <?xml version="1.0" encoding="UTF-8"?>
 <book>
   <title>Hello World</title>
@@ -1175,7 +1174,7 @@ local html = [[
 -- If you want to parse text in a file,
 -- you need to read file content by yourself.
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
@@ -1183,7 +1182,7 @@ parser.text = function(text)
   print("Text: " .. text)
 end
 
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -1197,6 +1196,111 @@ Result of avobe example as blow.
 ```
 Text:   
 Text: Hello World
+```
+
+### `warning`
+
+It registers user call back function as below.
+
+You can get warning messages of parse XML with SAX as argument of your call back.
+
+```lua
+local parser = xmlua.XMLSAXParser.new()
+parser.warning = function(message)
+  -- You want to execute code
+end
+```
+
+Registered function is called when occurring warning by parsing xml.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+-- XML to be parsed
+  local xml = [[
+<?xml version="1.0"?>
+<?xmlo ?>
+]]
+
+-- If you want to parse text in a file,
+-- you need to read file content by yourself.
+
+-- local xml = io.open("example.xml"):read("*all")
+
+-- Parses XML with SAX
+local parser = xmlua.XMLSAXParser.new()
+parser.warning = function(message)
+  print("Warning message: " .. message)
+end
+
+local success = parser:parse(xml)
+if not success then
+  print("Failed to parse XML with SAX")
+  os.exit(1)
+end
+
+parser:finish()
+```
+
+Result of avobe example as blow.
+
+```
+"xmlParsePITarget: invalid name prefix 'xml'\n"
+```
+
+Some warning are output only when `xmlParserCtxt.pedantic` is enable.
+To output, those warnings, use `is_pedantic` as follows.
+
+```lua
+parser.is_pedantic = true
+```
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+-- XML to be parsed
+  local xml = [[
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE root SYSTEM "file:///usr/local/share/test.dtd" [
+<!ENTITY test "This is test.">
+<!ENTITY test "This is test.">
+]>
+<root>
+       <data>&test;</data>
+</root>
+]]
+
+-- If you want to parse text in a file,
+-- you need to read file content by yourself.
+
+-- local xml = io.open("example.xml"):read("*all")
+
+-- Parses XML with SAX
+local parser = xmlua.XMLSAXParser.new()
+parser.is_pedantic = true
+parser.warning = function(message)
+  print("Warning message: " .. message)
+  print("Pedantic :", parser.is_pedantic)
+end
+
+local success = parser:parse(xml)
+if not success then
+  print("Failed to parse XML with SAX")
+  os.exit(1)
+end
+
+parser:finish()
+```
+
+Result of avobe example as blow.
+
+```
+Warning message: Entity(test) already defined in the internal subset
+Pedantic :	true
 ```
 
 ### `error`
@@ -1240,14 +1344,14 @@ Example:
 local xmlua = require("xmlua")
 
 -- XML to be parsed
-local html = [[
+local xml = [[
 <>
 ]]
 
 -- If you want to parse text in a file,
 -- you need to read file content by yourself.
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
@@ -1259,7 +1363,7 @@ parser.error = function(error)
   print("Error line   : " .. error.line)
 end
 
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)

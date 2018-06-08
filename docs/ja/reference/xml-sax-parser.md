@@ -39,7 +39,7 @@ SAXは、DOMと異なりドキュメントを一行ずつパースし、DOMは�
 
 XMLSAXParser オブジェクトを作成します。
 
-以下の例のように、`xmlua.HTMLSAXParser`クラスのオブジェクトを作成できます。
+以下の例のように、`xmlua.XMLSAXParser`クラスのオブジェクトを作成できます。
 
 例：
 
@@ -181,7 +181,7 @@ parser.end_document = function()
 end
 ```
 
-`xmlua.HTMLSAXParser.parser.finish`が呼ばれたときに、登録したコールバック関数が呼び出されます。
+`xmlua.XMLSAXParser.parser.finish`が呼ばれたときに、登録したコールバック関数が呼び出されます。
 
 以下の例では、`parser:finish()`を実行したときに登録した関数が呼び出されます。
 
@@ -198,14 +198,14 @@ local xml = [[
 -- ファイル内のテキストをパースしたい場合は
 -- 自分でファイルの内容を読み込む必要があります。
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- SAXを使ってXMLをパースする。
 local parser = xmlua.XMLSAXParser.new()
 parser.end_document = function()
   print("End document")
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -585,11 +585,12 @@ Entity content: This is test.
 以下のようにコールバック関数を登録できます。
 
 ```lua
-local listener = {}
-function listener:internal_subset(name, external_id, system_id)
+local parser = xmlua.XMLSAXParser.new()
+parser.internal_subset = function(name,
+                                  external_id,
+                                  system_id)
   -- 実行したいコード
 end
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 ```
 
 内部サブセットをパースしたときに、登録した関数が呼び出されます。
@@ -616,8 +617,10 @@ local xml = [[
 -- local xml = io.open("example.xml"):read("*all")
 
 -- SAXを使ってXMLをパースする。
-local listener = {}
-function listener:internal_subset(name, external_id, system_id)
+local parser = xmlua.XMLSAXParser.new()
+parser.internal_subset = function(name,
+                                  external_id,
+                                  system_id)
   print("Internal subset name: " .. name)
   if external_id ~= nil then
     print("Internal subset external id: " .. external_id)
@@ -626,8 +629,6 @@ function listener:internal_subset(name, external_id, system_id)
     print("Internal subset system id: " .. system_id)
   end
 end
-
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
@@ -648,11 +649,12 @@ Internal subset name: example
 以下のようにコールバック関数を登録できます。
 
 ```lua
-local listener = {}
-function listener:external_subset(name, external_id, system_id)
+local parser = xmlua.XMLSAXParser.new()
+parser.external_subset = function(name,
+                                  external_id,
+                                  system_id)
   -- 実行したいコード
 end
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 ```
 
 外部サブセットをパースしたときに、登録した関数が呼び出されます。
@@ -678,8 +680,10 @@ local xml = [[
 -- local xml = io.open("example.xml"):read("*all")
 
 -- SAXを使ってXMLをパースする。
-local listener = {}
-function listener:external_subset(name, external_id, system_id)
+local parser = xmlua.XMLSAXParser.new()
+parser.external_subset = function(name,
+                                  external_id,
+                                  system_id)
   print("External subset name: " .. name)
   if external_id ~= nil then
     print("External subset external id: " .. external_id)
@@ -688,8 +692,6 @@ function listener:external_subset(name, external_id, system_id)
     print("External subset system id: " .. system_id)
   end
 end
-
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
@@ -712,11 +714,10 @@ External subset system id: http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.d
 以下のようにコールバック関数を登録できます。
 
 ```lua
-local listener = {}
-function listener:reference(entity_name)
+local parser = xmlua.XMLSAXParser.new()
+parser.reference = function(entity_name)
   -- 実行したいコード
 end
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 ```
 
 参照をパースしたときに、登録した関数が呼び出されます。
@@ -742,13 +743,11 @@ local xml = [[
 
 -- local xml = io.open("example.xml"):read("*all")
 
--- Parses XML with SAX
-local listener = {}
-function listener:reference(entity_name)
+-- SAXを使ってXMLをパースする。
+local parser = xmlua.XMLSAXParser.new()
+parser.reference = function(entity_name)
   print("Reference entity name: " .. entity_name)
 end
-
-local parser = xmlua.XMLStreamSAXParser.new(listener)
 local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
@@ -795,7 +794,7 @@ local xml = [[
 -- ファイル内のテキストをパースしたい場合は
 -- 自分でファイルの内容を読み込む必要があります。
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- SAXを使ってXMLをパースする。
 local parser = xmlua.XMLSAXParser.new()
@@ -803,7 +802,7 @@ parser.processing_instruction = function(target, data_list)
   print("Processing instruction target: "..target)
   print("Processing instruction data: "..data_list)
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -852,14 +851,14 @@ local xml = [=[
 -- ファイル内のテキストをパースしたい場合は
 -- 自分でファイルの内容を読み込む必要があります。
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- SAXを使ってXMLをパースする。
 local parser = xmlua.XMLSAXParser.new()
 parser.cdata_block = function(cdata_block)
   print("CDATA block: "..cdata_block)
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -905,14 +904,14 @@ local xml = [[
 -- ファイル内のテキストをパースしたい場合は
 -- 自分でファイルの内容を読み込む必要があります。
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- SAXを使ってXMLをパースする。
 local parser = xmlua.XMLSAXParser.new()
 parser.ignorable_whitespace = function(ignorable_whitespace)
   print("Ignorable whitespace: ".."\""..ignorable_whitespace.."\"")
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -959,14 +958,14 @@ local xml = [[
 -- ファイル内のテキストをパースしたい場合は
 -- 自分でファイルの内容を読み込む必要があります。
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- SAXを使ってXMLをパースする。
 local parser = xmlua.XMLSAXParser.new()
 parser.comment = function(comment)
   print("Comment: "..comment)
 end
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -1016,7 +1015,7 @@ local xml = [[
 -- ファイル内のテキストをパースしたい場合は
 -- 自分でファイルの内容を読み込む必要があります。
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
@@ -1058,7 +1057,7 @@ parser.start_element = function(local_name,
   end
 end
 
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -1173,7 +1172,7 @@ local xml = [[
 -- ファイル内のテキストをパースしたい場合は
 -- 自分でファイルの内容を読み込む必要があります。
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
@@ -1181,7 +1180,7 @@ parser.text = function(text)
   print("Text: " .. text)
 end
 
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
@@ -1195,6 +1194,110 @@ parser:finish()
 ```
 Text:   
 Text: Hello World
+```
+
+### `warning`
+
+以下のようにコールバック関数を登録できます。
+
+コールバック関数の引数として、警告メッセージを取得できます。
+
+```lua
+local parser = xmlua.XMLSAXParser.new()
+parser.warning = function(message)
+  -- 実行したいコード
+end
+```
+
+登録した関数は、xmlの解析中に警告が発生した時に呼ばれます。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+-- パースするXML
+  local xml = [[
+<?xml version="1.0"?>
+<?xmlo ?>
+]]
+
+-- ファイル内のテキストをパースしたい場合は
+-- 自分でファイルの内容を読み込む必要があります。
+
+-- local xml = io.open("example.xml"):read("*all")
+
+-- SAXを使ってXMLをパースする。
+local parser = xmlua.XMLSAXParser.new()
+parser.warning = function(message)
+  print("Warning message: " .. message)
+end
+
+local success = parser:parse(xml)
+if not success then
+  print("Failed to parse XML with SAX")
+  os.exit(1)
+end
+
+parser:finish()
+```
+
+上記の例の結果は以下のようになります。
+
+```
+"xmlParsePITarget: invalid name prefix 'xml'\n"
+```
+
+いくつかの警告は、`xmlParserCtxt.pedantic`が有効なときのみ出力されます。これらの警告を出力するためには、`is_pedantic`を以下のように使用します。
+
+```lua
+parser.is_pedantic = true
+```
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+-- パースするXML
+  local xml = [[
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE root SYSTEM "file:///usr/local/share/test.dtd" [
+<!ENTITY test "This is test.">
+<!ENTITY test "This is test.">
+]>
+<root>
+       <data>&test;</data>
+</root>
+]]
+
+-- ファイル内のテキストをパースしたい場合は
+-- 自分でファイルの内容を読み込む必要があります。
+
+-- local xml = io.open("example.xml"):read("*all")
+
+-- SAXを使ってXMLをパースする。
+local parser = xmlua.XMLSAXParser.new()
+parser.is_pedantic = true
+parser.warning = function(message)
+  print("Warning message: " .. message)
+  print("Pedantic :", parser.is_pedantic)
+end
+
+local success = parser:parse(xml)
+if not success then
+  print("Failed to parse XML with SAX")
+  os.exit(1)
+end
+
+parser:finish()
+```
+
+上記の例の結果は以下のようになります。
+
+```
+Warning message: Entity(test) already defined in the internal subset
+Pedantic :	true
 ```
 
 ### `error`
@@ -1234,14 +1337,14 @@ end
 local xmlua = require("xmlua")
 
 -- XML to be parsed
-local html = [[
+local xml = [[
 <>
 ]]
 
 -- ファイル内のテキストをパースしたい場合は
 -- 自分でファイルの内容を読み込む必要があります。
 
--- local html = io.open("example.html"):read("*all")
+-- local xml = io.open("example.xml"):read("*all")
 
 -- Parses XML with SAX
 local parser = xmlua.XMLSAXParser.new()
@@ -1253,7 +1356,7 @@ parser.error = function(error)
   print("Error line   : " .. error.line)
 end
 
-local success = parser:parse(html)
+local success = parser:parse(xml)
 if not success then
   print("Failed to parse XML with SAX")
   os.exit(1)
