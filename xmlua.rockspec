@@ -1,6 +1,6 @@
 -- -*- lua -*-
 
-local package_version = "1.0.7"
+local package_version = "1.0.8"
 
 package = "XMLua"
 version = package_version .. "-0"
@@ -46,6 +46,7 @@ build = {
     ["xmlua.libxml2.global"] = "xmlua/libxml2/global.lua",
     ["xmlua.libxml2.hash"] = "xmlua/libxml2/hash.lua",
     ["xmlua.libxml2.html-parser"] = "xmlua/libxml2/html-parser.lua",
+    ["xmlua.libxml2.html-tree"] = "xmlua/libxml2/html-tree.lua",
     ["xmlua.libxml2.memory"] = "xmlua/libxml2/memory.lua",
     ["xmlua.libxml2.parser"] = "xmlua/libxml2/parser.lua",
     ["xmlua.libxml2.tree"] = "xmlua/libxml2/tree.lua",

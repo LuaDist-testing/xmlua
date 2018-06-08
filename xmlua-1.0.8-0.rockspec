@@ -2,7 +2,7 @@
 
 -- -*- lua -*-
 
-local package_version = "1.0.7"
+local package_version = "1.0.8"
 
 package = "xmlua"
 version = package_version .. "-0"
@@ -31,7 +31,7 @@ external_dependencies = {
 }
 -- LuaDist source
 source = {
-  tag = "1.0.7-0",
+  tag = "1.0.8-0",
   url = "git://github.com/LuaDist-testing/xmlua.git"
 }
 -- Original source
@@ -54,6 +54,7 @@ build = {
     ["xmlua.libxml2.global"] = "xmlua/libxml2/global.lua",
     ["xmlua.libxml2.hash"] = "xmlua/libxml2/hash.lua",
     ["xmlua.libxml2.html-parser"] = "xmlua/libxml2/html-parser.lua",
+    ["xmlua.libxml2.html-tree"] = "xmlua/libxml2/html-tree.lua",
     ["xmlua.libxml2.memory"] = "xmlua/libxml2/memory.lua",
     ["xmlua.libxml2.parser"] = "xmlua/libxml2/parser.lua",
     ["xmlua.libxml2.tree"] = "xmlua/libxml2/tree.lua",
