@@ -33,9 +33,17 @@ function methods.parent(self)
   return nil
 end
 
-function Document.new(raw_document)
+function methods.encoding(self)
+  return ffi.string(self.document.encoding)
+end
+
+function Document.new(raw_document, errors)
+  if not errors then
+    errors = {}
+  end
   local document = {
     document = raw_document,
+    errors = errors,
   }
   setmetatable(document, metatable)
   return document

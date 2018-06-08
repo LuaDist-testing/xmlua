@@ -5,16 +5,16 @@ local ffi = require("ffi")
 TestLibxml2HTML = {}
 function TestLibxml2HTML.test_parse_valid()
   local html = "<html></html>"
-  local context = libxml2.htmlCreateMemoryParserCtxt(html)
-  luaunit.assertEquals(libxml2.htmlParseDocument(context),
-                       true)
+  local context = libxml2.htmlNewParserCtxt(html)
+  luaunit.assertEquals(ffi.typeof(libxml2.htmlCtxtReadMemory(context, html)),
+                       ffi.typeof("xmlDocPtr"))
 end
 
 function TestLibxml2HTML.test_parse_invalid()
   local html = " "
-  local context = libxml2.htmlCreateMemoryParserCtxt(html)
-  luaunit.assertEquals(libxml2.htmlParseDocument(context),
-                       false)
+  local context = libxml2.htmlNewParserCtxt()
+  luaunit.assertEquals(ffi.typeof(libxml2.htmlCtxtReadMemory(context, html)),
+                       ffi.typeof("xmlDocPtr"))
   luaunit.assertEquals(ffi.string(context.lastError.message),
                        "Document is empty\n")
 end
@@ -40,26 +40,28 @@ end
 TestLibxml2XML = {}
 function TestLibxml2XML.test_parse_valid()
   local xml = "<root/>"
-  local context = libxml2.xmlCreateMemoryParserCtxt(xml)
-  luaunit.assertEquals(libxml2.xmlParseDocument(context),
-                       true)
+  local context = libxml2.xmlNewParserCtxt(xml)
+  luaunit.assertEquals(ffi.typeof(libxml2.xmlCtxtReadMemory(context, xml)),
+                       ffi.typeof("xmlDocPtr"))
 end
 
 function TestLibxml2XML.test_parse_invalid()
   local xml = "<root>"
-  local context = libxml2.xmlCreateMemoryParserCtxt(xml)
-  luaunit.assertEquals(libxml2.xmlParseDocument(context),
-                       false)
+  local context = libxml2.xmlNewParserCtxt()
+  local document = libxml2.xmlCtxtReadMemory(context, xml)
+  luaunit.assertEquals(ffi.typeof(document),
+                       ffi.typeof("xmlDocPtr"))
   luaunit.assertEquals(ffi.string(context.lastError.message),
                        "Premature end of data in tag root line 1\n")
 end
 
 local function parse_xml(xml)
-  local context = libxml2.xmlCreateMemoryParserCtxt(xml)
-  if not libxml2.xmlParseDocument(context) then
+  local context = libxml2.xmlNewParserCtxt()
+  local document = libxml2.xmlCtxtReadMemory(context, xml)
+  if not document then
     error({message = ffi.string(context.lastError.message)})
   end
-  return context.myDoc
+  return document
 end
 
 TestLibxml2XPathContext = {}
@@ -264,4 +266,18 @@ function TestLibxml2Node.test_get_prop_not_found()
   local document = parse_xml(xml)
   local root = root_element(document)
   luaunit.assertNil(libxml2.xmlGetProp(root, "nonexistent"))
+end
+
+function TestLibxml2Node.test_get_content_exist()
+  local xml = [[
+<root>root1<child>child</child>root2</root>
+]]
+  local document = parse_xml(xml)
+  local root = root_element(document)
+  luaunit.assertEquals(libxml2.xmlNodeGetContent(root),
+                       "root1childroot2")
+end
+
+function TestLibxml2Node.test_get_content_none()
+  luaunit.assertNil(libxml2.xmlNodeGetContent(nil))
 end

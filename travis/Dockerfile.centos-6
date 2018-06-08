@@ -4,13 +4,22 @@ RUN \
   yum install -y epel-release
 RUN \
   yum install -y \
+    gcc \
     libxml2 \
     luajit \
+    luajit-devel \
     luarocks \
+    make \
+    m4 \
+    openssl-devel \
     unzip
 RUN \
-  luarocks install \
-    luaunit
+  luarocks install cqueues \
+    CRYPTO_LIBDIR=/usr/lib64 \
+    OPENSSL_LIBDIR=/usr/lib64 && \
+  mv /usr/lib/lua/5.1/* \
+     /usr/lib64/lua/5.1/ && \
+  luarocks install luaunit
 
 RUN \
   useradd --user-group --create-home xmlua
@@ -21,4 +30,6 @@ RUN chown -R xmlua:xmlua ~xmlua/xmlua
 USER xmlua
 WORKDIR /home/xmlua/xmlua
 
-CMD test/run-test.lua
+CMD \
+  test/run-test.lua && \
+  sample/parse-html-cqueues-thread.lua sample/sample.html

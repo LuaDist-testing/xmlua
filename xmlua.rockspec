@@ -1,6 +1,6 @@
 -- -*- lua -*-
 
-local package_version = "1.0.0"
+local package_version = "1.0.1"
 
 package = "xmlua"
 version = package_version .. "-0"
@@ -20,7 +20,7 @@ description = {
   -- labels = {"xml"},
 }
 external_dependencies = {
-  libxml2 = {
+  LIBXML2 = {
     library = "xml2"
   }
 }
@@ -42,7 +42,6 @@ build = {
     ["xmlua.libxml2.html-parser"] = "xmlua/libxml2/html-parser.lua",
     ["xmlua.libxml2.memory"] = "xmlua/libxml2/memory.lua",
     ["xmlua.libxml2.parser"] = "xmlua/libxml2/parser.lua",
-    ["xmlua.libxml2.parser-internals"] = "xmlua/libxml2/parser-internals.lua",
     ["xmlua.libxml2.tree"] = "xmlua/libxml2/tree.lua",
     ["xmlua.libxml2.valid"] = "xmlua/libxml2/valid.lua",
     ["xmlua.libxml2.xmlerror"] = "xmlua/libxml2/xmlerror.lua",
