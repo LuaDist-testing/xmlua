@@ -25,7 +25,7 @@ RUN \
   useradd --user-group --create-home xmlua
 
 COPY . /home/xmlua/xmlua
-RUN chown -R xmlua:xmlua ~xmlua/xmlua
+RUN chown -R xmlua:xmlua ~xmlua/xmlua/*
 
 USER xmlua
 WORKDIR /home/xmlua/xmlua

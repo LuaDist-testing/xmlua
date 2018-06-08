@@ -1,7 +1,12 @@
 local ffi = require("ffi")
 
 ffi.cdef[[
-typedef void *xmlParserInputPtr;
+typedef struct _xmlParserInputBuffer xmlParserInputBuffer;
+typedef xmlParserInputBuffer *xmlParserInputBufferPtr;
+
+typedef struct _xmlParserInput xmlParserInput;
+typedef xmlParserInput *xmlParserInputPtr;
+
 typedef void *xmlAttrPtr;
 
 typedef struct _xmlEntity xmlEntity;
@@ -15,6 +20,9 @@ typedef xmlElementContent *xmlElementContentPtr;
 
 typedef struct _xmlSAXLocator xmlSAXLocator;
 typedef xmlSAXLocator *xmlSAXLocatorPtr;
+
+typedef struct _xmlSAXHandler xmlSAXHandler;
+typedef xmlSAXHandler *xmlSAXHandlerPtr;
 
 typedef struct _xmlDoc xmlDoc;
 typedef xmlDoc *xmlDocPtr;

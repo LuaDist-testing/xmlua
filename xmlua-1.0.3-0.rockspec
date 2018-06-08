@@ -2,7 +2,7 @@
 
 -- -*- lua -*-
 
-local package_version = "1.0.2"
+local package_version = "1.0.3"
 
 package = "xmlua"
 version = package_version .. "-0"
@@ -28,23 +28,26 @@ external_dependencies = {
 }
 -- LuaDist source
 source = {
-  tag = "1.0.2-0",
+  tag = "1.0.3-0",
   url = "git://github.com/LuaDist-testing/xmlua.git"
 }
 -- Original source
 -- source = {
 --   url = "https://github.com/clear-code/xmlua/archive/" .. package_version .. ".zip",
---   dir = package .. "-" .. package_version,
+--   dir = "xmlua-" .. package_version,
 -- }
 build = {
   type = "builtin",
   modules = {
     ["xmlua"] = "xmlua.lua",
+    ["xmlua.converter"] = "xmlua/converter.lua",
     ["xmlua.document"] = "xmlua/document.lua",
     ["xmlua.element"] = "xmlua/element.lua",
     ["xmlua.html"] = "xmlua/html.lua",
+    ["xmlua.html-sax-parser"] = "xmlua/html-sax-parser.lua",
     ["xmlua.libxml2"] = "xmlua/libxml2.lua",
     ["xmlua.libxml2.dict"] = "xmlua/libxml2/dict.lua",
+    ["xmlua.libxml2.encoding"] = "xmlua/libxml2/encoding.lua",
     ["xmlua.libxml2.global"] = "xmlua/libxml2/global.lua",
     ["xmlua.libxml2.hash"] = "xmlua/libxml2/hash.lua",
     ["xmlua.libxml2.html-parser"] = "xmlua/libxml2/html-parser.lua",
