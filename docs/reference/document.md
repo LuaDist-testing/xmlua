@@ -309,6 +309,102 @@ print(document:to_xml())
 end
 ```
 
+### `create_document_type(name, public_id, system_id) -> [xmlua.DocumentType]` {#create_document_type}
+
+You can create new document type node.
+You can specify a location of the external subset by SystemID or PublicID.
+If you want to specify a location of the exterrnal subset by PublicID, you set `public_id` and `system_id`.
+If you want to specify a location of the external subset by SystemID, you set `system_id`(`public_id` is `nil`).
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+--Specify a location by PublicID
+local document = xmlua.XML.build({})
+local document_type =
+  document:create_document_type("TestDocumentDecl",
+                                "-//Test/Sample/EN",
+                                "//test.dtd")
+print(document:to_xml()
+--<?xml version="1.0" encoding="UTF-8"?>
+--<!DOCTYPE TestDocumentDecl PUBLIC "-//Test/Sample/EN" "//system.dtd">
+```
+
+```lua
+local xmlua = require("xmlua")
+
+--Specify a location by SystemID
+local document = xmlua.XML.build({})
+local document_type =
+  document:create_document_type("TestDocumentDecl",
+                                nil,
+                                "//test.dtd")
+print(document:to_xml()
+--<?xml version="1.0" encoding="UTF-8"?>
+--<!DOCTYPE TestDocumentDecl SYSTEM "//system.dtd">
+```
+
+### `create_namespace(href, prefix) -> [xmlua.Namespace]` {#create_namespace}
+
+You can create new namespace node.
+This method can't create a namespace with a similar prefix than an existing one present on this node.
+If you want to create default namespace, you set `nil` to `prefix`.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+--create new namespace
+local document = xmlua.XML.build({"root"})
+local namespace =
+  document:create_namespace("http://www.w3.org/1999/xhtml",
+                            "xhtml")
+local root = document:root()
+root:set_namespace(namespace)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<xhtml:root/>
+```
+
+```lua
+local xmlua = require("xmlua")
+--create default namespace
+local document = xmlua.XML.build({"root"})
+local namespace =
+  document:create_namespace("http://www.w3.org/1999/xhtml",
+                            nil)
+local root = document:root()
+root:set_namespace(namespace)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root/>
+```
+
+### `create_processing_instruction(name, content) -> [xmlua.ProcessingInstruction]` {#create_processing_instruction}
+
+You can create new processing instruction node.
+You can spesify processing instruction as `name` and argument of processing instruction as `content`.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.build({"root"})
+local processing_instruction =
+  document:create_processing_instruction("xml-stylesheet",
+                                         "href=\"www.test.com/test-style.xsl\" type=\"text/xsl\"")
+local root = document:root()
+root:add_child(processing_instruction)
+print(document:to_xml())
+<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <?xml-stylesheet href="www.test.com/test-style.xsl" type="text/xsl"?>
+--</root>
+```
+
 ## See also
 
   * [`xmlua.HTML`][html]: The class for parsing HTML.

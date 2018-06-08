@@ -90,6 +90,7 @@ function libxml2.htmlParseChunk(context, chunk, is_terminated)
     return xml2.htmlParseChunk(context, nil, 0, is_terminated)
   end
 end
+jit.off(libxml2.htmlParseChunk)
 
 function libxml2.htmlCtxtReadMemory(context, html, options)
   local url = nil
@@ -113,6 +114,7 @@ function libxml2.htmlCtxtReadMemory(context, html, options)
   end
   return ffi.gc(document, libxml2.xmlFreeDoc)
 end
+jit.off(libxml2.htmlCtxtReadMemory)
 
 function libxml2.htmlNewDoc(uri, externa_dtd)
   local document = xml2.htmlNewDoc(uri, externa_dtd)
@@ -160,6 +162,7 @@ function libxml2.xmlCtxtReadMemory(context, xml, options)
   end
   return ffi.gc(document, libxml2.xmlFreeDoc)
 end
+jit.off(libxml2.xmlCtxtReadMemory)
 
 function libxml2.xmlParseChunk(context, chunk, is_terminated)
   if chunk then
@@ -323,8 +326,7 @@ function libxml2.xmlCreateIntSubset(document,
 end
 
 function libxml2.xmlGetIntSubset(document)
-  local raw_internal_subset
-    = xml2.xmlGetIntSubset(document)
+  local raw_internal_subset = xml2.xmlGetIntSubset(document)
   if raw_internal_subset == ffi.NULL then
     return nil
   end
@@ -494,8 +496,20 @@ function libxml2.xmlNodeGetContent(node)
 end
 
 function libxml2.xmlReplaceNode(old_node, new_node)
-  xml2.xmlReplaceNode(old_node, new_node)
-  return
+  local was_freed = false
+  local was_unlinked = (old_node == new_node
+                       or
+                       (old_node.type == ffi.C.XML_ATTRIBUTE_NODE
+                        and new_node.type ~= ffi.C.XML_ATTRIBUTE_NODE)
+                       or
+                       (old_node.type ~= ffi.C.XML_ATTRIBUTE_NODE
+                        and new_node.type == ffi.C.XML_ATTRIBUTE_NODE))
+  local old = xml2.xmlReplaceNode(old_node, new_node)
+  if old ~= ffi.NULL and was_unlinked then
+    libxml2.xmlFree(old_node)
+    was_freed = true
+  end
+  return was_freed
 end
 
 function libxml2.xmlGetNodePath(node)
@@ -529,15 +543,16 @@ function libxml2.xmlSaveDoc(context, document)
   local written = xml2.xmlSaveDoc(context, document)
   return written ~= -1
 end
+jit.off(libxml2.xmlSaveDoc)
 
 function libxml2.xmlSaveTree(context, node)
   local written = xml2.xmlSaveTree(context, node)
   return written ~= -1
 end
+jit.off(libxml2.xmlSaveTree)
 
 local function error_ignore(user_data, err)
 end
-jit.off(c_error_ignore, true)
 local c_error_ignore = ffi.cast("xmlStructuredErrorFunc", error_ignore)
 ffi.gc(c_error_ignore, function(callback) callback:free() end)
 
@@ -571,6 +586,7 @@ else
     return true
   end
 end
+jit.off(libxml2.xmlXPathSetContextNode)
 
 function libxml2.xmlXPathEvalExpression(expression, context)
   local object = xml2.xmlXPathEvalExpression(expression, context)
@@ -579,6 +595,7 @@ function libxml2.xmlXPathEvalExpression(expression, context)
   end
   return ffi.gc(object, xml2.xmlXPathFreeObject)
 end
+jit.off(libxml2.xmlXPathEvalExpression)
 
 function libxml2.xmlStrdup(string)
   return xml2.xmlStrdup(string)
