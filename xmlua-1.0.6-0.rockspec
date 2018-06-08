@@ -2,7 +2,7 @@
 
 -- -*- lua -*-
 
-local package_version = "1.0.5"
+local package_version = "1.0.6"
 
 package = "xmlua"
 version = package_version .. "-0"
@@ -31,7 +31,7 @@ external_dependencies = {
 }
 -- LuaDist source
 source = {
-  tag = "1.0.5-0",
+  tag = "1.0.6-0",
   url = "git://github.com/LuaDist-testing/xmlua.git"
 }
 -- Original source

@@ -4,6 +4,13 @@ title: News
 
 # News
 
+## 1.0.6: 2018-04-02 {#version-1-0-6}
+
+### Fixes
+
+  * `xmlua.Element:insert_element()`: Fixed a bug that
+    `insert_element(1)` with empty element raises an error.
+
 ## 1.0.5: 2018-03-30 {#version-1-0-5}
 
 ### Improvements
@@ -26,7 +33,7 @@ title: News
 
   * `xmlua.Element:remove_attribute()`: Added.
 
-  * `xmlua.XML:build()`: Added.
+  * `xmlua.XML.build()`: Added.
 
 ## 1.0.4: 2018-03-19 {#version-1-0-4}
 
