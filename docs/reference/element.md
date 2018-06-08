@@ -111,6 +111,149 @@ for i = 1, #children do
 end
 ```
 
+### `append_element(name, attributes={ATTRIBUTE1, ATTRIBUTE2, ...}) -> xmlua.Element` {#append-element}
+
+Make an element with the specified name and append it the last child element of `xmlua.Element` of the receiver.
+If you specify attributes, it set the attribute to the appended element.
+It returns appended element.
+If `name` is `namespace_prefix:local_name`, it set the namespace to the append element.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+--append node.
+local document = xmlua.XML.parse("<root/>")
+local root = document:root()
+local child = root:append_element("child")
+print(child:to_xml())
+-- <child/>
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root>
+--   <child/>
+-- </root>
+
+
+-- appned node with attirbute
+local document = xmlua.XML.parse("<root/>")
+local root = document:root()
+local child = root:append_element("child", {id="1", class="A"})
+
+print(child:to_xml())
+-- <child class="A" id="1"/>
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root>
+--   <child class="A" id="1"/>
+-- </root>
+
+
+-- appned node with namespace
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+local child = root:append_element("xhtml:child", {id="1", class="A"})
+print(child:to_xml())
+-- <xhtml:child class="A" id="1"/>
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml">
+--   <xhtml:child class="A" id="1"/>
+-- </xhtml:html>
+```
+
+### `insert_element(position, name, attributes={ATTRIBUTE1, ATTRIBUTE2, ...}) -> xmlua.Element` {#insert-element}
+
+Make an element with the specified name and append it the `position`th child element of `xmlua.Element` of the receiver.
+`position` is 1 origin.
+If you specify attributes, it set the attribute to the appended element.
+It returns appended element.
+If `name` is `namespace_prefix:local_name`, it set the namespace to the append element.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+-- insert element
+local document = xmlua.XML.parse([[<root><child1/><child2/></root>]])
+local root = document:root()
+local child = root:insert_element(2, "new-child")
+print(child)
+-- <new-child/>
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root>
+--   <child1/>
+--   <new-child/>
+--   <child2/>
+-- </root>
+
+
+-- Insert element with attribute
+local document = xmlua.XML.parse([[<root><child1/><child2/></root>]])
+local root = document:root()
+local child = root:insert_element(2, "new-child", {id="1", class="A"})
+print(child)
+-- <new-child class="A" id="1"/>
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root>
+--   <child1/>
+--   <new-child class="A" id="1"/>
+--   <child2/>
+-- </root>
+
+
+-- Insert element with namespace
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <xhtml:child1/>
+  <xhtml:child2/>
+</xhtml:html>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+local child = root:insert_element(2,
+                                  "xhtml:new-child",
+                                  {id="1", class="A"})
+print(child)
+-- <xhtml:new-child class="A" id="1"/>
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml">
+--   <xhtml:child1/>
+--   <xhtml:new-child class="A" id="1"/><xhtml:child2/>
+-- </xhtml:html>
+```
+
+### `unlink() -> xmlua.Element` {#unlink}
+
+It remove reciver from document tree.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[<root><child/></root>]])
+local child = document:css_select("child")[1]
+-- unlink element from document tree
+local unlinked_node = child:unlink()
+
+print(unlinked_node:to_xml())
+-- <child/>
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root/>
+```
+
 ### `get_attribute(name) -> string` {#get-attribute}
 
 It gets attribute value of the given attribute name. If the attribute name doesn't exist, it returns `nil`.
@@ -166,6 +309,150 @@ print(root["attribute"])
 -- With nonexistent namespace prefix
 print(root["nonexistent-namespace:attribute"])
 -- -> value-nonexistent-namespace
+```
+
+### `set_attribute(name, value) -> void` {#set-attribute}
+
+It set specify attribute to element.
+If attribute already exist, it overrides attribute.
+If attribute not exist, it makes attribute.
+If `name` is `namespace_prefix:local_name`, it set the namespace to the attribute.
+You can write not only `element:set_attribute(name, value)` but also `element.name = value`.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+-- set attribute
+local document = xmlua.XML.parse("<root/>")
+local root = document:root()
+root:set_attribute("class", "A")
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root class="A"/>
+
+
+-- set attribute another way write
+local document = xmlua.XML.parse("<root/>")
+local root = document:root()
+root.class = "A"
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root class="A"/>
+
+
+-- set attribute update
+local document = xmlua.XML.parse("<root value='1'/>")
+local root = document:root()
+root.value = "2"
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root value="2"/>
+
+
+-- set attribute with namespace
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+root:set_attribute("xhtml:class", "top-level")
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml" xhtml:class="top-level"/>
+
+
+-- set attribute update with namespace
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xhtml:class="top-level"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+root:set_attribute("xhtml:class", "top-level-updated")
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml" xhtml:class="top-level-updated"/>
+```
+
+### `remove_attribute(name) -> void` {#remove-attribute}
+
+It removes attribute wiht specified name.
+If `name` is `xmlns:local_name`, it remove the namespace.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+-- Remove attribute
+local document = xmlua.XML.parse("<root class=\"A\"/>")
+local node_set = document:search("/root")
+node_set[1]:remove_attribute("class")
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root/>
+
+
+--Remove attribute with namespace
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xhtml:class="xhtml-top-level"
+  xmlns:example="http://example.com/"
+  example:class="example-top-level"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+root:remove_attribute("xhtml:class")
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:example="http://example.com/" example:class="example-top-level"/>
+
+
+-- Remove attribute with default namespace
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  class="top-level"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+root:remove_attribute("class")
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <html xmlns="http://www.w3.org/1999/xhtml"/>
+
+
+-- Remove namespace
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:example="http://example.com/"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+root:remove_attribute("xmlns:example")
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root/>
+
+-- Remove default namespace
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="http://example.com/"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+root:remove_attribute("xmlns")
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root/>
 ```
 
 ### `previous() -> xmlua.Element` {#previous}

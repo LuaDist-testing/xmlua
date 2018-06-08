@@ -212,6 +212,197 @@ for _, path in ipairs(node_set:paths()) do
 end
 ```
 
+### `insert([position,] node) -> void` {#insert}
+
+It inserts `Node` to [`xmlua.NodeSet`][node-set]. However,it does not insert to document tree.
+If you insert the same node, it's ignored.
+You can insert not only [`xmlua.Element`][element] but also anything for `Node`.
+
+If you want to specify insert position, you specify the position in the first argument of this method.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[
+<xml>
+  <header>
+    <title>This is test</title>
+  </header>
+  <contents>
+    <sub1>sub1</sub1>
+    <sub2>sub2</sub2>
+    <sub3>sub3</sub3>
+  </contents>
+</xml>
+]])
+
+--Insert node
+local inserted_node_set = document:search("//title")
+-- <title>This is test</title>
+local insert_node = document:search("//xml/contents/sub1")[1]
+-- <sub1>sub1</sub1>
+inserted_node_set:insert(insert_node)
+
+print(inserted_node_set:to_xml())
+-- <title>This is test</title><sub1>sub1</sub1>
+
+-- Insert node with position
+local inserted_node_set = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+local insert_node = document:search("//title")[1]
+-- <title>This is test</title>
+inserted_node_set:insert(1, insert_node)
+
+print(inserted_node_set:to_xml())
+-- <title>This is test</title>
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+```
+
+### `remove(node or position) -> xmlua.Node` {#remove}
+
+It remove `Node` in [`xmlua.NodeSet`][node-set]. However,it does not remove from document tree.
+It returns removed node. If it fail remove, it returns nil.
+
+If you want to specify remove position, you specify the position in the first argument of this method.
+If you want to specify the node to be removed, you specify the `Node` in the first argument of this method.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[
+<xml>
+  <header>
+    <title>This is test</title>
+  </header>
+  <contents>
+    <sub1>sub1</sub1>
+    <sub2>sub2</sub2>
+    <sub3>sub3</sub3>
+  </contents>
+</xml>
+]])
+
+-- Remove node
+local removed_node_set = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+local remove_node = removed_node_set:remove(removed_node_set[1])
+print(remove_node:to_xml())
+-- <sub1>sub1</sub1>
+print(removed_node_set:to_xml())
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+
+-- Remove node with position
+local removed_node_set = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+local remove_node = removed_node_set:remove(1)
+print(remove_node:to_xml())
+-- <sub1>sub1</sub1>
+print(removed_node_set:to_xml())
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+```
+
+### `merge(node set) -> xmlua.NodeSet` {#merge}
+
+It returns new "node set" which merged receiver's node and argument's node.
+You can write not only `node_set1:merge(node_set2) but also `node_set1 + node_set2`.
+Remove duplicate node.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[
+<xml>
+  <header>
+    <title>This is test</title>
+  </header>
+  <contents>
+    <sub1>sub1</sub1>
+    <sub2>sub2</sub2>
+    <sub3>sub3</sub3>
+  </contents>
+</xml>
+]])
+-- Merge nodes
+local node_set1 = document:search("//title")
+-- <title>This is test</title>
+local node_set2 = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+local merged_node_set = node_set1:merge(node_set2)
+print(merged_node_set:to_xml())
+-- <title>This is test</title>
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+
+-- Merge nodes another way write.
+local merged_node_set = node_set1 + node_set2
+print(merged_node_set:to_xml())
+-- <title>This is test</title>
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+```
+
+### `unlink() -> void` {#unlink}
+
+It remove all node in node set from document tree.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[
+<xml>
+  <header>
+    <title>This is test</title>
+  </header>
+  <contents>
+    <sub1>sub1</sub1>
+    <sub2>sub2</sub2>
+    <sub3>sub3</sub3>
+  </contents>
+</xml>
+]])
+
+-- remove all nodes in node set
+local node_set = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+node_set:unlink()
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<xml>
+--  <header>
+--    <title>This is test</title>
+--  </header>
+--  <contents>
+--
+--
+--
+--  </contents>
+--</xml>
+```
+
 ## See also
 
   * [`xmlua.Element`][element]: The class for element node.

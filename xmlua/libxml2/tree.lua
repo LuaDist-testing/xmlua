@@ -7,8 +7,6 @@ typedef xmlParserInputBuffer *xmlParserInputBufferPtr;
 typedef struct _xmlParserInput xmlParserInput;
 typedef xmlParserInput *xmlParserInputPtr;
 
-typedef void *xmlAttrPtr;
-
 typedef struct _xmlEntity xmlEntity;
 typedef xmlEntity *xmlEntityPtr;
 
@@ -151,6 +149,37 @@ struct _xmlDoc {
 				   set at the end of parsing */
 };
 
+typedef enum {
+    XML_ATTRIBUTE_CDATA = 1,
+    XML_ATTRIBUTE_ID,
+    XML_ATTRIBUTE_IDREF	,
+    XML_ATTRIBUTE_IDREFS,
+    XML_ATTRIBUTE_ENTITY,
+    XML_ATTRIBUTE_ENTITIES,
+    XML_ATTRIBUTE_NMTOKEN,
+    XML_ATTRIBUTE_NMTOKENS,
+    XML_ATTRIBUTE_ENUMERATION,
+    XML_ATTRIBUTE_NOTATION
+} xmlAttributeType;
+
+typedef struct _xmlAttr xmlAttr;
+typedef xmlAttr *xmlAttrPtr;
+struct _xmlAttr {
+    void           *_private;	/* application data */
+    xmlElementType   type;      /* XML_ATTRIBUTE_NODE, must be second ! */
+    const xmlChar   *name;      /* the name of the property */
+    struct _xmlNode *children;	/* the value of the property */
+    struct _xmlNode *last;	/* NULL */
+    struct _xmlNode *parent;	/* child->parent link */
+    struct _xmlAttr *next;	/* next sibling link  */
+    struct _xmlAttr *prev;	/* previous sibling link  */
+    struct _xmlDoc  *doc;	/* the containing document */
+    xmlNs           *ns;        /* pointer to the associated namespace */
+    xmlAttributeType atype;     /* the attribute type if validating */
+    void            *psvi;	/* for type/PSVI informations */
+};
+
+
 void xmlFreeDoc(xmlDocPtr cur);
 xmlNodePtr xmlDocGetRootElement(const xmlDoc *doc);
 
@@ -160,7 +189,20 @@ xmlNodePtr xmlNextElementSibling(xmlNodePtr node);
 xmlNodePtr xmlFirstElementChild(xmlNodePtr node);
 xmlNodePtr xmlLastElementChild(xmlNodePtr node);
 
+xmlNsPtr xmlNewNs(xmlNodePtr node,
+		  const xmlChar *href,
+		  const xmlChar *prefix);
+void xmlFreeNs(xmlNsPtr cur);
+void xmlSetNs(xmlNodePtr node, xmlNsPtr ns);
+xmlDocPtr xmlNewDoc(const xmlChar *version);
+xmlNodePtr xmlDocSetRootElement(xmlDocPtr doc, xmlNodePtr root);
+xmlNodePtr xmlNewNode(xmlNsPtr ns, const xmlChar *name);
+xmlNodePtr xmlNewText(const xmlChar *content);
+xmlNodePtr xmlAddPrevSibling(xmlNodePtr cur, xmlNodePtr elem);
+xmlNodePtr xmlAddChild(xmlNodePtr parent, xmlNodePtr cur);
+
 xmlNsPtr xmlSearchNs(xmlDocPtr doc, xmlNodePtr node, const xmlChar *nameSpace);
+xmlNsPtr xmlSearchNsByHref(xmlDocPtr doc, xmlNodePtr node, const xmlChar *href);
 
 char *xmlGetNoNsProp(const xmlNode *node, const xmlChar *name);
 xmlChar *xmlGetNsProp(const xmlNode *node,
@@ -168,6 +210,19 @@ xmlChar *xmlGetNsProp(const xmlNode *node,
                       const xmlChar *nameSpace);
 xmlChar *xmlGetProp(const xmlNode *node, const xmlChar *name);
 
+xmlAttrPtr xmlNewNsProp(xmlNodePtr node,
+			xmlNsPtr ns,
+			const xmlChar *name,
+			const xmlChar *value);
+xmlAttrPtr xmlNewProp(xmlNodePtr node,
+		      const xmlChar *name,
+		      const xmlChar *value);
+int xmlUnsetNsProp(xmlNodePtr node, xmlNsPtr ns, const xmlChar *name);
+int xmlUnsetProp(xmlNodePtr node, const xmlChar *name);
+
 xmlChar *xmlNodeGetContent(const xmlNode *cur);
 xmlChar *xmlGetNodePath(const xmlNode *node);
+
+void xmlFreeNode(xmlNodePtr cur);
+void xmlUnlinkNode(xmlNodePtr cur);
 ]]

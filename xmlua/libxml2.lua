@@ -218,8 +218,67 @@ function libxml2.xmlFirstElementChild(node)
   return element
 end
 
+function libxml2.xmlNewNs(node, uri, prefix)
+  local new_namespace = xml2.xmlNewNs(node, uri, prefix)
+  return new_namespace
+end
+
+function libxml2.xmlFreeNs(namespace)
+  xml2.xmlFreeNs(namespace)
+end
+
+function libxml2.xmlSetNs(node, namespace)
+  xml2.xmlSetNs(node, namespace)
+  return
+end
+
+function libxml2.xmlNewDoc(xml_version)
+  local document = xml2.xmlNewDoc(xml_version)
+  if document == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(document, libxml2.xmlFreeDoc)
+end
+
+function libxml2.xmlDocSetRootElement(document, root)
+  return xml2.xmlDocSetRootElement(document, root)
+end
+
+function libxml2.xmlNewNode(namespace, name)
+  local new_element = xml2.xmlNewNode(namespace, name)
+  return new_element
+end
+
+function libxml2.xmlNewText(content)
+  return xml2.xmlNewText(content)
+end
+
+function libxml2.xmlAddPrevSibling(sibling, new_sibling)
+  local new_node = xml2.xmlAddPrevSibling(sibling, new_sibling)
+  if new_node == ffi.NULL then
+    new_node = nil
+  end
+  return new_node
+end
+
+function libxml2.xmlAddChild(parent, child)
+  local child_node = xml2.xmlAddChild(parent, child)
+  if child_node == ffi.NULL then
+    child_node = nil
+  end
+  return child_node
+end
+
 function libxml2.xmlSearchNs(document, node, namespace_prefix)
   local namespace = xml2.xmlSearchNs(document, node, namespace_prefix)
+  if namespace == ffi.NULL then
+    return nil
+  end
+  return namespace
+end
+
+function libxml2.xmlSearchNsByHref(document, node, href)
+  local namespace = xml2.xmlSearchNsByHref(document, node, href)
   if namespace == ffi.NULL then
     return nil
   end
@@ -256,6 +315,23 @@ function libxml2.xmlGetProp(node, name)
   return lua_string
 end
 
+function libxml2.xmlNewNsProp(node, namespace, name, value)
+  xml2.xmlNewNsProp(node, namespace, name, value)
+end
+
+function libxml2.xmlNewProp(node, name, value)
+  xml2.xmlNewProp(node, name, value)
+end
+
+function libxml2.xmlUnsetNsProp(node, namespace, name)
+  xml2.xmlUnsetNsProp(node, namespace, name)
+end
+
+function libxml2.xmlUnsetProp(node, name)
+  xml2.xmlUnsetProp(node, name)
+end
+
+
 function libxml2.xmlNodeGetContent(node)
   local content = xml2.xmlNodeGetContent(node)
   if content == ffi.NULL then
@@ -274,6 +350,11 @@ function libxml2.xmlGetNodePath(node)
   local lua_string = ffi.string(path)
   libxml2.xmlFree(path)
   return lua_string
+end
+
+function libxml2.xmlUnlinkNode(node)
+  xml2.xmlUnlinkNode(node)
+  return ffi.gc(node, xml2.xmlFreeNode)
 end
 
 
@@ -298,21 +379,15 @@ function libxml2.xmlSaveTree(context, node)
   return written ~= -1
 end
 
-function libxml2.xmlStructuredErrorFuncIgnore(user_data, err)
+local function error_ignore(user_data, err)
 end
-
-libxml2.xmlStructuredErrorFuncIgnoreC =
-  ffi.cast("xmlStructuredErrorFunc",
-           libxml2.xmlStructuredErrorFuncIgnore)
-ffi.gc(libxml2.xmlStructuredErrorFuncIgnoreC,
-       function() libxml2.xmlStructuredErrorFuncIgnoreC:free() end)
 
 function libxml2.xmlXPathNewContext(document)
   local context = xml2.xmlXPathNewContext(document)
   if context == ffi.NULL then
     return nil
   end
-  context.error = libxml2.xmlStructuredErrorFuncIgnoreC
+  context.error = error_ignore
   return ffi.gc(context, xml2.xmlXPathFreeContext)
 end
 
@@ -344,6 +419,10 @@ function libxml2.xmlXPathEvalExpression(expression, context)
     return nil
   end
   return ffi.gc(object, xml2.xmlXPathFreeObject)
+end
+
+function libxml2.xmlStrdup(string)
+  return xml2.xmlStrdup(string)
 end
 
 return libxml2

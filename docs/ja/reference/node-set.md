@@ -212,6 +212,195 @@ for _, path in ipairs(node_set:paths()) do
 end
 ```
 
+### `insert([position,] node) -> void` {#insert}
+
+`Node`を[`xmlua.NodeSet`][node-set]に挿入します。ただし、ドキュメントツリーには追加しません。
+同じノードが挿入された場合は無視されます。
+[`xmlua.Element`][element]だけではなく、`Node`ならなんでも挿入できます。
+
+挿入位置を指定したい場合は、このメソッドの第一引数の挿入位置を指定してください。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[
+<xml>
+  <header>
+    <title>This is test</title>
+  </header>
+  <contents>
+    <sub1>sub1</sub1>
+    <sub2>sub2</sub2>
+    <sub3>sub3</sub3>
+  </contents>
+</xml>
+]])
+
+--nodeの挿入
+local inserted_node_set = document:search("//title")
+-- <title>This is test</title>
+local insert_node = document:search("//xml/contents/sub1")[1]
+-- <sub1>sub1</sub1>
+inserted_node_set:insert(insert_node)
+
+print(inserted_node_set:to_xml())
+-- <title>This is test</title><sub1>sub1</sub1>
+
+-- 挿入位置を指定して挿入
+local inserted_node_set = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+local insert_node = document:search("//title")[1]
+-- <title>This is test</title>
+inserted_node_set:insert(1, insert_node)
+
+print(inserted_node_set:to_xml())
+-- <title>This is test</title>
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+```
+
+### `remove(node or position) -> xmlua.Node` {#remove}
+
+`Node`を[`xmlua.NodeSet`][node-set]から削除します. ただし、ドキュメントツリーからは削除しません。
+削除した`Node`を返します。削除出来なかった場合は、`nil`を返します。
+
+削除するノードの位置を指定したい場合は、このメソッドの第一引数に削除する位置を指定してください。
+削除するノードを指定したい場合は、このメソッドの第一引数に削除するノードを指定して下さい。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[
+<xml>
+  <header>
+    <title>This is test</title>
+  </header>
+  <contents>
+    <sub1>sub1</sub1>
+    <sub2>sub2</sub2>
+    <sub3>sub3</sub3>
+  </contents>
+</xml>
+]])
+
+-- ノードを削除する。
+local removed_node_set = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+local remove_node = removed_node_set:remove(removed_node_set[1])
+print(remove_node:to_xml())
+-- <sub1>sub1</sub1>
+print(removed_node_set:to_xml())
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+
+-- 位置を指定してノードを削除する。
+local removed_node_set = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+local remove_node = removed_node_set:remove(1)
+print(remove_node:to_xml())
+-- <sub1>sub1</sub1>
+print(removed_node_set:to_xml())
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+```
+
+### `merge(node set) -> xmlua.NodeSet` {#merge}
+
+レシーバー内のノードと引数内のノードをマージして新しいノードセットをかえします。`node_set1:merge(node_set2) という書き方だけでなく、`node_set1 + node_set2`という書き方もできます。重複したノードは削除します。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[
+<xml>
+  <header>
+    <title>This is test</title>
+  </header>
+  <contents>
+    <sub1>sub1</sub1>
+    <sub2>sub2</sub2>
+    <sub3>sub3</sub3>
+  </contents>
+</xml>
+]])
+-- ノードをマージする
+local node_set1 = document:search("//title")
+-- <title>This is test</title>
+local node_set2 = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+local merged_node_set = node_set1:merge(node_set2)
+print(merged_node_set:to_xml())
+-- <title>This is test</title>
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+
+-- 別の書き方でノードをマージする
+local merged_node_set = node_set1 + node_set2
+print(merged_node_set:to_xml())
+-- <title>This is test</title>
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+```
+
+### `unlink() -> void` {#unlink}
+
+ノードセット内の全てのノードをドキュメントツリーから削除します。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.parse([[
+<xml>
+  <header>
+    <title>This is test</title>
+  </header>
+  <contents>
+    <sub1>sub1</sub1>
+    <sub2>sub2</sub2>
+    <sub3>sub3</sub3>
+  </contents>
+</xml>
+]])
+
+--  ノードセット内の全てのノードを削除する。
+local node_set = document:search("//xml/contents/*")
+-- <sub1>sub1</sub1>
+-- <sub2>sub2</sub2>
+-- <sub3>sub3</sub3>
+node_set:unlink()
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<xml>
+--  <header>
+--    <title>This is test</title>
+--  </header>
+--  <contents>
+--
+--
+--
+--  </contents>
+--</xml>
+```
+
 ## 参照
 
   * [`xmlua.Element`][element]: 要素ノード用のクラスです。

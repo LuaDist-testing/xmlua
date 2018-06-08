@@ -89,17 +89,22 @@ end
 
 function Searchable.css_select(self, css_selector_groups)
   local xpaths = luacs.to_xpaths(css_selector_groups)
-  local raw_node_set = {}
+  local node_set = nil
   for _, xpath in ipairs(xpaths) do
     if self.node then
-      xpath = "./" .. xpath
+      xpath = "." .. xpath
     end
-    for _, node in ipairs(self:search(xpath)) do
-      -- TODO: Remove duplicated
-      table.insert(raw_node_set, node)
+    if node_set == nil then
+      node_set = self:search(xpath)
+    else
+      node_set = node_set + self:search(xpath)
     end
   end
-  return NodeSet.new(raw_node_set)
+  if node_set == nil then
+    NodeSet.new({})
+  else
+    return node_set
+  end
 end
 
 return Searchable

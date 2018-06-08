@@ -15,6 +15,7 @@ end
 local methods = {}
 
 local metatable = {}
+
 function metatable.__index(document, key)
   return methods[key] or
     Serializable[key] or
@@ -35,6 +36,40 @@ end
 
 function methods.encoding(self)
   return ffi.string(self.document.encoding)
+end
+
+local function build_element(element, tree)
+  local sub_element = element:append_element(tree[1], tree[2])
+  for i = 3, #tree do
+    if type(tree[i]) == "table" then
+      build_element(sub_element, tree[i])
+    else
+      sub_element:append_text(tree[i])
+    end
+  end
+end
+
+function Document.build(raw_document, tree)
+  local document = Document.new(raw_document)
+  if #tree == 0 then
+    return document
+  end
+
+  local root = Element.build(document, tree[1], tree[2])
+  if not libxml2.xmlDocSetRootElement(raw_document, root.node) then
+    root:unlink()
+    return nil
+  end
+
+  for i = 3, #tree do
+    if type(tree[i]) == "table" then
+      build_element(root, tree[i])
+    else
+      root:append_text(tree[i])
+    end
+  end
+
+  return document
 end
 
 function Document.new(raw_document, errors)
