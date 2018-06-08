@@ -12,9 +12,58 @@ typedef xmlEntity *xmlEntityPtr;
 
 typedef struct _xmlEnumeration xmlEnumeration;
 typedef xmlEnumeration *xmlEnumerationPtr;
+struct _xmlEnumeration {
+    struct _xmlEnumeration    *next;	/* next one */
+    const xmlChar            *name;	/* Enumeration name */
+};
+
+/**
+ * xmlAttributeDefault:
+ *
+ * A DTD Attribute default definition.
+ */
+typedef enum {
+    XML_ATTRIBUTE_NONE = 1,
+    XML_ATTRIBUTE_REQUIRED,
+    XML_ATTRIBUTE_IMPLIED,
+    XML_ATTRIBUTE_FIXED
+} xmlAttributeDefault;
+
+/**
+ * xmlElementContentType:
+ *
+ * Possible definitions of element content types.
+ */
+typedef enum {
+    XML_ELEMENT_CONTENT_PCDATA = 1,
+    XML_ELEMENT_CONTENT_ELEMENT,
+    XML_ELEMENT_CONTENT_SEQ,
+    XML_ELEMENT_CONTENT_OR
+} xmlElementContentType;
+
+/**
+ * xmlElementContentOccur:
+ *
+ * Possible definitions of element content occurrences.
+ */
+typedef enum {
+    XML_ELEMENT_CONTENT_ONCE = 1,
+    XML_ELEMENT_CONTENT_OPT,
+    XML_ELEMENT_CONTENT_MULT,
+    XML_ELEMENT_CONTENT_PLUS
+} xmlElementContentOccur;
 
 typedef struct _xmlElementContent xmlElementContent;
 typedef xmlElementContent *xmlElementContentPtr;
+struct _xmlElementContent {
+    xmlElementContentType     type;	/* PCDATA, ELEMENT, SEQ or OR */
+    xmlElementContentOccur    ocur;	/* ONCE, OPT, MULT or PLUS */
+    const xmlChar             *name;	/* Element name */
+    struct _xmlElementContent *c1;	/* first child */
+    struct _xmlElementContent *c2;	/* second child */
+    struct _xmlElementContent *parent;	/* parent */
+    const xmlChar             *prefix;	/* Namespace prefix */
+};
 
 typedef struct _xmlSAXLocator xmlSAXLocator;
 typedef xmlSAXLocator *xmlSAXLocatorPtr;
@@ -201,6 +250,20 @@ struct _xmlAttr {
     xmlAttributeType atype;     /* the attribute type if validating */
     void            *psvi;	/* for type/PSVI informations */
 };
+
+/**
+ * xmlElementTypeVal:
+ *
+ * The different possibilities for an element content type.
+ */
+
+typedef enum {
+    XML_ELEMENT_TYPE_UNDEFINED = 0,
+    XML_ELEMENT_TYPE_EMPTY = 1,
+    XML_ELEMENT_TYPE_ANY,
+    XML_ELEMENT_TYPE_MIXED,
+    XML_ELEMENT_TYPE_ELEMENT
+} xmlElementTypeVal;
 
 
 void xmlFreeDoc(xmlDocPtr cur);

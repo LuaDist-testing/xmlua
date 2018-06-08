@@ -106,6 +106,31 @@ typedef enum {
     XML_PARSE_READER = 5
 } xmlParserMode;
 
+typedef enum {
+/**
+ * XML_DETECT_IDS:
+ *
+ * Bit in the loadsubset context field to tell to do ID/REFs lookups.
+ * Use it to initialize xmlLoadExtDtdDefaultValue.
+ */
+    XML_DETECT_IDS = 2,
+/**
+ * XML_COMPLETE_ATTRS:
+ *
+ * Bit in the loadsubset context field to tell to do complete the
+ * elements attributes lists with the ones defaulted from the DTDs.
+ * Use it to initialize xmlLoadExtDtdDefaultValue.
+ */
+    XML_COMPLETE_ATTRS = 4,
+/**
+ * XML_SKIP_IDS:
+ *
+ * Bit in the loadsubset context field to tell to not do ID/REFs registration.
+ * Used to initialize xmlLoadExtDtdDefaultValue in some special cases.
+ */
+    XML_SKIP_IDS = 8
+} xmlLoadSubsetOption;
+
 typedef struct _xmlParserCtxt xmlParserCtxt;
 struct _xmlParserCtxt {
     struct _xmlSAXHandler *sax;       /* The SAX handler */
@@ -310,8 +335,21 @@ typedef void (*cdataBlockSAXFunc) (
 	                        void *ctx,
 				const xmlChar *value,
 				int len);
+/*
+ * NOTE: `warningSAXFunc` change arguments from the original
+ *       definition as follows.
+ *
+ *         `...` -> `char *value`
+ *
+ *       Because LuaJit's FFI can not handle with variable
+ *       length argument of C language.
+ *       `warningSAXFunc`'s variable length argument has only
+ *       used to save one string within "libxml2".
+ *       So, there is no problem even if we change the definition
+ *       of argument `...` to `char *`.
+ */
 typedef void (*warningSAXFunc) (void *ctx,
-				const char *msg, ...);
+				const char *msg, char *value);
 typedef void (*errorSAXFunc) (void *ctx,
 				const char *msg, ...);
 typedef void (*fatalErrorSAXFunc) (void *ctx,

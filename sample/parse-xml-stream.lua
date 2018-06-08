@@ -2,16 +2,13 @@
 
 local xmlua = require("xmlua")
 
-local path = arg[1]
-local file = assert(io.open(path))
+local listener = {}
 
-local parser = xmlua.XMLSAXParser.new()
-
-parser.start_document = function()
+function listener:start_document()
   print("Start document")
 end
 
-local function print_element_content(content, indent)
+function listener:print_element_content(content, indent)
   if content.type == "PCDATA" then
     print(indent .. "type: " .. content.type)
     print(indent .. "occur: " .. content.occur)
@@ -25,24 +22,22 @@ local function print_element_content(content, indent)
     print(indent .. "occur: " .. content.occur)
     for i, child in pairs(content.children) do
       print(indent .. "child[" .. i .. "]:")
-      print_element_content(child, indent .. "  ")
+      self:print_element_content(child, indent .. "  ")
     end
   end
 end
 
-parser.element_declaration = function(name,
-                                      element_type,
-                                      content)
+function listener:element_declaration(name, element_type, content)
   print("Element name: " .. name)
   print("Element type: " .. element_type)
   if element_type == "EMPTY" then
     return
   end
   print("Content:")
-  print_element_content(content, "  ")
+  self:print_element_content(content, "  ")
 end
 
-parser.attribute_declaration = function(name,
+function listener:attribute_declaration(name,
                                         attribute_name,
                                         attribute_type,
                                         default_value_type,
@@ -60,9 +55,7 @@ parser.attribute_declaration = function(name,
   end
 end
 
-parser.notation_declaration = function(name,
-                                       public_id,
-                                       system_id)
+function listener:notation_declaration(name, public_id, system_id)
   print("Notation name: " .. name)
   if public_id ~= nil then
     print("Notation public id: " .. public_id)
@@ -72,7 +65,7 @@ parser.notation_declaration = function(name,
   end
 end
 
-parser.unparsed_entity_declaration = function(name,
+function listener:unparsed_entity_declaration(name,
                                               public_id,
                                               system_id,
                                               notation_name)
@@ -86,7 +79,7 @@ parser.unparsed_entity_declaration = function(name,
   print("Unparserd entity notation_name: " .. notation_name)
 end
 
-parser.entity_declaration = function(name,
+function listener:entity_declaration(name,
                                      entity_type,
                                      public_id,
                                      system_id,
@@ -102,9 +95,7 @@ parser.entity_declaration = function(name,
   print("Entity content: " .. content)
 end
 
-parser.internal_subset = function(name,
-                                  external_id,
-                                  system_id)
+function listener:internal_subset(name, external_id, system_id)
   print("Internal subset name: " .. name)
   if external_id ~= nil then
     print("Internal subset external id: " .. external_id)
@@ -114,9 +105,7 @@ parser.internal_subset = function(name,
   end
 end
 
-parser.external_subset = function(name,
-                                  external_id,
-                                  system_id)
+function listener:external_subset(name, external_id, system_id)
   print("External subset name: " .. name)
   if external_id ~= nil then
     print("External subset external id: " .. external_id)
@@ -126,28 +115,33 @@ parser.external_subset = function(name,
   end
 end
 
-parser.cdata_block = function(cdata_block)
+function listener:cdata_block(cdata_block)
   print("CDATA block: " .. cdata_block)
 end
 
-parser.comment = function(comment)
+function listener:comment(comment)
   print("Comment: " .. comment)
 end
 
-parser.processing_instruction = function(target, data)
+function listener:processing_instruction(target, data)
   print("Processing instruction target: " .. target)
   print("Processing instruction data: " .. data)
 end
 
-parser.text = function(text)
+function listener:ignorable_whitespace(ignorable_whitespaces)
+  print("Ignorable whitespaces: " .. "\"" .. ignorable_whitespaces .. "\"")
+  print("Ignorable whitespaces length: " .. #ignorable_whitespaces)
+end
+
+function listener:text(text)
   print("Text: <" .. text .. ">")
 end
 
-parser.reference = function(entity_name)
+function listener:reference(entity_name)
   print("Reference entity name: " .. entity_name)
 end
 
-parser.start_element = function(local_name,
+function listener:start_element(local_name,
                                 prefix,
                                 uri,
                                 namespaces,
@@ -185,9 +179,7 @@ parser.start_element = function(local_name,
   end
 end
 
-parser.end_element = function(local_name,
-                              prefix,
-                              uri)
+function listener:end_element(local_name, prefix, uri)
   print("End element: " .. local_name)
   if prefix then
     print("  prefix: " .. prefix)
@@ -197,7 +189,12 @@ parser.end_element = function(local_name,
   end
 end
 
-parser.error = function(xml_error)
+function listener:warning(message)
+  print("Warning message:", message)
+  print("Pedantic:", parser.is_pedantic)
+end
+
+function listener:error(xml_error)
   print("Error domain:", xml_error["domain"])
   print("Error code:", xml_error["code"])
   print("Error message:", xml_error["message"])
@@ -205,16 +202,17 @@ parser.error = function(xml_error)
   print("Error line:", xml_error["line"])
 end
 
-parser.end_document = function()
+function listener:end_document()
   print("End document")
 end
 
+local parser = xmlua.XMLStreamSAXParser.new(listener)
+
 while true do
-  local line = file:read()
+  local line = io.stdin:read()
   if not line then
     parser:finish()
     break
   end
   parser:parse(line)
 end
-file:close()

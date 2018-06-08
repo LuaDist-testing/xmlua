@@ -1,12 +1,13 @@
 local xmlua = {}
 
-xmlua.VERSION = "1.0.8"
+xmlua.VERSION = "1.0.9"
 
 xmlua.libxml2 = require("xmlua.libxml2")
 xmlua.XML = require("xmlua.xml")
 xmlua.HTML = require("xmlua.html")
 xmlua.HTMLSAXParser = require("xmlua.html-sax-parser")
 xmlua.XMLSAXParser = require("xmlua.xml-sax-parser")
+xmlua.XMLStreamSAXParser = require("xmlua.xml-stream-sax-parser")
 
 local Document = require("xmlua.document")
 Document.lazy_load()

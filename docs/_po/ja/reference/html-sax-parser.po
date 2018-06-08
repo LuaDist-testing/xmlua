@@ -67,7 +67,7 @@ msgstr ""
 msgid "It makes HTMLSAXParser object."
 msgstr "HTMLSAXParser オブジェクトを作成します。"
 
-msgid "You can make object of `xmllua.HTMLSAXParser` class as below example."
+msgid "You can make object of `xmlua.HTMLSAXParser` class as below example."
 msgstr "以下の例のように、`xmlua.HTMLSAXParser`クラスのオブジェクトを作成できます。"
 
 msgid "Example:"
@@ -199,7 +199,7 @@ msgstr ""
 "```"
 
 msgid "Registered function is called, when parse start document element."
-msgstr "document要素のパースを開始敷いたときに、登録した関数が呼び出されます。"
+msgstr "document要素のパースを開始したときに、登録した関数が呼び出されます。"
 
 msgid "Registered function is called, when parse `<html>` in below example."
 msgstr "以下の例だと、`<html>`をパースしたときに、登録した関数が呼び出されます。"
