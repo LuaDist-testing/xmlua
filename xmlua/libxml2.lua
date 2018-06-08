@@ -20,6 +20,21 @@ if not loaded then
   xml2 = ffi.load("libxml2.so.2")
 end
 
+local function __xmlParserVersionIsAvailable()
+  local success, err = pcall(function()
+      local func = xml2.__xmlParserVersion
+  end)
+  return success
+end
+
+local xmlParserVersion
+if __xmlParserVersionIsAvailable() then
+  xmlParserVersion = xml2.__xmlParserVersion()[0]
+else
+  xmlParserVersion = xml2.xmlParserVersion
+end
+
+libxml2.VERSION = ffi.string(xmlParserVersion)
 libxml2.XML_SAX2_MAGIC = 0xDEEDBEAF
 
 local function __xmlMallocIsAvailable()
@@ -67,6 +82,14 @@ function libxml2.htmlCreatePushParserCtxt(filename, encoding)
   return ffi.gc(context, xml2.htmlFreeParserCtxt)
 end
 
+function libxml2.htmlParseChunk(context, chunk, is_terminated)
+  if chunk then
+    return xml2.htmlParseChunk(context, chunk, #chunk, is_terminated)
+  else
+    return xml2.htmlParseChunk(context, nil, 0, is_terminated)
+  end
+end
+
 function libxml2.htmlCtxtReadMemory(context, html, options)
   local url = nil
   local encoding = nil
@@ -92,6 +115,14 @@ end
 
 function libxml2.xmlNewParserCtxt()
   local context = xml2.xmlNewParserCtxt()
+  if context == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(context, xml2.xmlFreeParserCtxt)
+end
+
+function libxml2.xmlCreatePushParserCtxt(filename)
+  local context = xml2.xmlCreatePushParserCtxt(nil, nil, nil, 0, filename)
   if context == ffi.NULL then
     return nil
   end
@@ -235,6 +266,16 @@ function libxml2.xmlNodeGetContent(node)
   return lua_string
 end
 
+function libxml2.xmlGetNodePath(node)
+  local path = xml2.xmlGetNodePath(node)
+  if path == ffi.NULL then
+    return nil
+  end
+  local lua_string = ffi.string(path)
+  libxml2.xmlFree(path)
+  return lua_string
+end
+
 
 function libxml2.xmlBufferCreate()
   return ffi.gc(xml2.xmlBufferCreate(), xml2.xmlBufferFree)
@@ -257,15 +298,21 @@ function libxml2.xmlSaveTree(context, node)
   return written ~= -1
 end
 
-local suppress_error = ffi.cast("xmlStructuredErrorFunc",
-                                function(user_data, err) end)
+function libxml2.xmlStructuredErrorFuncIgnore(user_data, err)
+end
+
+libxml2.xmlStructuredErrorFuncIgnoreC =
+  ffi.cast("xmlStructuredErrorFunc",
+           libxml2.xmlStructuredErrorFuncIgnore)
+ffi.gc(libxml2.xmlStructuredErrorFuncIgnoreC,
+       function() libxml2.xmlStructuredErrorFuncIgnoreC:free() end)
 
 function libxml2.xmlXPathNewContext(document)
   local context = xml2.xmlXPathNewContext(document)
   if context == ffi.NULL then
     return nil
   end
-  context.error = suppress_error
+  context.error = libxml2.xmlStructuredErrorFuncIgnoreC
   return ffi.gc(context, xml2.xmlXPathFreeContext)
 end
 

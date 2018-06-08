@@ -5,6 +5,7 @@ RUN \
 RUN \
   yum install -y \
     gcc \
+    git \
     libxml2 \
     luajit \
     luajit-devel \
@@ -30,6 +31,10 @@ RUN chown -R xmlua:xmlua ~xmlua/xmlua/*
 USER xmlua
 WORKDIR /home/xmlua/xmlua
 
+RUN \
+  git clone --depth 1 https://github.com/clear-code/luacs.git ../luacs
+
 CMD \
   test/run-test.lua && \
-  sample/parse-html-cqueues-thread.lua sample/sample.html
+  luajit -e 'package.path = "../luacs/?.lua;" .. package.path' \
+    sample/parse-html-cqueues-thread.lua sample/sample.html

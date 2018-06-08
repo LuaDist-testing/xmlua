@@ -1,6 +1,6 @@
 -- -*- lua -*-
 
-local package_version = "1.0.3"
+local package_version = "1.0.4"
 
 package = "XMLua"
 version = package_version .. "-0"
@@ -18,6 +18,9 @@ description = {
   maintainer = "Horimoto Yasuhiro <horimoto@clear-code.com> and Kouhei Sutou <kou@clear-code.com>",
   -- Since 3.0
   -- labels = {"xml"},
+}
+dependencies = {
+  "luacs",
 }
 external_dependencies = {
   LIBXML2 = {
@@ -56,7 +59,8 @@ build = {
     ["xmlua.searchable"] = "xmlua/searchable.lua",
     ["xmlua.serializable"] = "xmlua/serializable.lua",
     ["xmlua.text"] = "xmlua/text.lua",
-    ["xmlua.xml"] = "xmlua/xml.lua"
+    ["xmlua.xml"] = "xmlua/xml.lua",
+    ["xmlua.xml-sax-parser"] = "xmlua/xml-sax-parser.lua"
   },
   copy_directories = {
     "docs"

@@ -91,6 +91,7 @@ function methods.text(self)
   return self:content()
 end
 
+
 function Element.new(document, node)
   local element = {
     document = document,

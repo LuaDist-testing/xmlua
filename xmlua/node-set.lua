@@ -43,6 +43,17 @@ function methods.search(self, xpath)
   return NodeSet.new(nodes)
 end
 
+function methods.css_select(self, css_selectors)
+  local nodes = {}
+  for i, node in ipairs(self) do
+    local sub_nodes = node:css_select(css_selectors)
+    for j, sub_node in ipairs(sub_nodes) do
+      table.insert(nodes, sub_node)
+    end
+  end
+  return NodeSet.new(nodes)
+end
+
 function methods.content(self, xpath)
   return table.concat(map(self,
                           function(node)
@@ -52,6 +63,13 @@ function methods.content(self, xpath)
 end
 
 methods.text = methods.content
+
+function methods.paths(self)
+  return map(self,
+             function(node)
+               return node:path()
+             end)
+end
 
 function NodeSet.new(nodes)
   setmetatable(nodes, metatable)
