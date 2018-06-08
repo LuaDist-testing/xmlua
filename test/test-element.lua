@@ -77,6 +77,137 @@ function TestElement.test_parent_root()
 ]])
 end
 
+function TestDocument.test_add_attribute_node()
+  local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root id="1">
+  <child1/>
+</root>
+]])
+  local attribute_node = document:search("/root/@id")
+
+  local root = document:root()
+  local child = root:children()[1]
+  child:add_child(attribute_node[1])
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child1 id="1"/>
+</root>
+]])
+end
+
+function TestDocument.test_add_cdata_section_node()
+  local document = xmlua.XML.build({"root"})
+  local cdata_section_node =
+    document:create_cdata_section("This is <CDATA>")
+  local root = document:root()
+  root:add_child(cdata_section_node)
+  luaunit.assertEquals(document:to_xml(),
+                       [=[
+<?xml version="1.0" encoding="UTF-8"?>
+<root><![CDATA[This is <CDATA>]]></root>
+]=])
+end
+
+function TestDocument.test_add_comment_node()
+  local document = xmlua.XML.build({"root"})
+  local comment_node =
+    document:create_comment("This is comment!")
+  local root = document:root()
+  root:add_child(comment_node)
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <!--This is comment!-->
+</root>
+]])
+end
+
+function TestDocument.test_add_previous_sibling_node()
+  local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child1/>
+</root>
+]])
+  local root = document:root()
+  local comment_node =
+    document:create_comment("This is comment!")
+  local child = root:children()[1]
+  child:add_previous_sibling(comment_node)
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <!--This is comment!--><child1/>
+</root>
+]])
+end
+
+function TestDocument.test_add_previous_sibling_node_added_node_nil()
+  local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child1/>
+</root>
+]])
+  local root = document:root()
+  local comment_node =
+    document:create_comment("This is comment!")
+  local child = root:children()[1]
+  comment_node.node = nil
+  local success, message =
+    pcall(function() child:add_previous_sibling(comment_node) end)
+  luaunit.assertEquals(success, false)
+  luaunit.assertEquals(message:gsub("^.+:%d+: ", ""),
+                       "Already freed added node")
+end
+
+function TestDocument.test_append_sibling_node()
+  local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child1/>
+</root>
+]])
+  local root = document:root()
+  local comment_node =
+    document:create_comment("This is comment!")
+  local child = root:children()[1]
+  child:append_sibling(comment_node)
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child1/>
+<!--This is comment!--></root>
+]])
+end
+
+function TestDocument.test_add_next_sibling_node()
+  local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child1/>
+</root>
+]])
+  local root = document:root()
+  local comment_node =
+    document:create_comment("This is comment!")
+  local child = root:children()[1]
+  child:add_next_sibling(comment_node)
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child1/><!--This is comment!-->
+</root>
+]])
+end
+
 function TestElement.test_children()
   local document = xmlua.XML.parse([[
 <root>
@@ -864,4 +995,54 @@ function TestElement.test_unlink()
 <root/>
 ]],
                        })
+end
+
+function TestElement.test_find_namespace_with_prefix()
+  local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"/>
+]]
+  local document = xmlua.XML.parse(xml)
+  local root = document:root()
+  local namespace = root:find_namespace("xhtml")
+  luaunit.assertEquals({
+                         namespace:prefix(),
+                         namespace:href()
+                       },
+                       {
+                         "xhtml",
+                         "http://www.w3.org/1999/xhtml"
+                       })
+end
+
+function TestElement.test_find_namespace_with_href()
+  local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"/>
+]]
+  local document = xmlua.XML.parse(xml)
+  local root = document:root()
+  local namespace = root:find_namespace(nil, "http://www.w3.org/1999/xhtml")
+  luaunit.assertEquals({
+                         namespace:prefix(),
+                         namespace:href()
+                       },
+                       {
+                         "xhtml",
+                         "http://www.w3.org/1999/xhtml"
+                       })
+end
+
+function TestElement.test_find_namespace_default_namespace()
+  local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<test xmlns='http://www.test.org/xhtml'
+      xmlns:xhtml='http://www.w3.org/1999/xhtml'>
+</test>
+]]
+  local document = xmlua.XML.parse(xml)
+  local root = document:root()
+  local namespace = root:find_namespace()
+  luaunit.assertEquals(namespace:href(),
+                       "http://www.test.org/xhtml")
 end

@@ -218,6 +218,122 @@ print(document:to_xml())
 -- </xhtml:html>
 ```
 
+### `append_text(text_content) -> xmlua.Text` {#append-text}
+
+指定された名前のテキスト要素を作成し、それをレシーバーの`xmlua.Element`の最後の子要素にします。このメソッドは、追加したテキスト要素を返します。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+--要素の追加
+local document = xmlua.XML.parse("<root/>")
+local root = document:root()
+local child = root:append_text("This is Text element.")
+print(child:text())
+-- This is Text element.
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root>This is Text element.</root>
+```
+
+### `add_child(child_node) -> void` {#add_child}
+
+レシーバーの要素の新しい要素を最後の子要素として追加します。新しいノードが属性ノードの場合は、子要素ではなく、レシーバーのプロパティに追加されます。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+--append CDATASection node.
+local document = xmlua.XML.build({"root"})
+local cdata_section_node =
+  document:create_cdata_section("This is <CDATA>")
+local root = document:root()
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root><![CDATA[This is <CDATA>]]></root>
+```
+
+### `add_previous_sibling(node) -> void` {#add_previous_sibling}
+
+新しいノードをレシーバーの要素の前に兄弟要素として追加します。新しいノードが既にドキュメント内に挿入されている場合は、最初に既存のコンテキストからリンクが解除されます。新しいノードが属性ノードの場合、兄弟要素ではなくレシーバーのプロパティとして追加されます。
+
+例：
+
+```lua
+local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child/>
+</root>
+]])
+
+--append comment node.
+local root = document:root()
+local comment_node =
+  document:create_comment("This is comment!")
+local child = root:children()[1]
+child:add_previous_sibling(comment_node)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <!--This is comment!--><child/>
+--</root>
+```
+
+### `append_sibling(node) -> void` {#append_sibling}
+
+新しいノードをレシーバーの最後の兄弟要素として追加します。
+新しいノードが既にドキュメント内に挿入されている場合は、最初に既存のコンテキストからリンクが解除されます。
+
+例：
+
+```lua
+local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child/>
+</root>
+]])
+local root = document:root()
+local comment_node =
+  document:create_comment("This is comment!")
+local child = root:children()[1]
+child:append_sibling(comment_node)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <child/>
+--<!--This is comment!--></root>
+```
+
+### `add_next_sibling(node) -> void` {#add_next_sibling}
+
+新しいノードをレシーバーの次の兄弟要素として追加します。
+新しいノードが既にドキュメント内に挿入されている場合は、最初に既存のコンテキストからリンクが解除されます。
+
+例：
+
+```lua
+local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child/>
+</root>
+]])
+local root = document:root()
+local comment_node =
+  document:create_comment("This is comment!")
+local child = root:children()[1]
+child:add_next_sibling(comment_node)
+print(document:to_xml()
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <child/><!--This is comment!-->
+--</root>
+```
+
 ### `unlink() -> xmlua.Element` {#unlink}
 
 レシーバーをドキュメントツリーから削除します。
@@ -581,6 +697,58 @@ print(subs[3]:to_xml())
 -- <sub3/>
 ```
 
+### `find_namespace(prefix, href) -> [xmlua.Namespace]` {#find_namespace}
+
+ドキュメントに登録されている名前空間を検索することができます。prefixがnilで、hrefが存在する場合、このメソッドは名前空間をhrefで検索します。prefixとhrefがnilの場合、このメソッドはデフォルトの名前空間を検索します。見つかった名前空間またはnilを返します。戻り値がnilの場合は、名前空間の検索は失敗です。
+
+例：
+
+```lua
+--prefixによる検索
+local xmlua = require("xmlua")
+
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+local namespace = root:find_namespace("xhtml")
+print(namespace:prefix()) --"xhtml"
+print(namespace:href()) --"http://www.w3.org/1999/xhtml"
+```
+
+```lua
+--hrefによる検索
+local xmlua = require("xmlua")
+
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+local namespace = root:find_namespace(nil, "http://www.w3.org/1999/xhtml")
+print(namespace:prefix()) --"xhtml"
+print(namespace:href()) --"http://www.w3.org/1999/xhtml"
+```
+
+```lua
+--デフォルトネームスペースの検索
+local xmlua = require("xmlua")
+
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<test xmlns='http://www.test.org/xhtml'
+      xmlns:xhtml='http://www.w3.org/1999/xhtml'>
+</test>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+local namespace = root:find_namespace()
+print(namespace:href()) --"http://www.test.org/xhtml"
+```
+
 ## 参照
 
   * [`xmlua.HTML`][html]: HTMLをパースするクラスです。
@@ -588,6 +756,8 @@ print(subs[3]:to_xml())
   * [`xmlua.XML`][xml]: XMLをパースするクラスです。
 
   * [`xmlua.Document`][document]: HTMLドキュメントとXMLドキュメント用のクラスです。
+
+  * [`xmlua.Namespace`][namespace]: The class for namespace nodes.
 
   * [`xmlua.NodeSet`][node-set]: 複数ノードを扱うためのクラスです。
 
@@ -609,3 +779,5 @@ print(subs[3]:to_xml())
 [serializable]:serializable.html
 
 [searchable]:searchable.html
+
+[namespace]:namespace.html

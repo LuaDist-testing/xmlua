@@ -14,6 +14,7 @@ local Searchable = require("xmlua.searchable")
 local Node = require("xmlua.node")
 local Document = require("xmlua.document")
 local Text = require("xmlua.text")
+local Namespace = require("xmlua.namespace")
 local NodeSet = require("xmlua.node-set")
 
 local methods = {}
@@ -144,6 +145,61 @@ local function create_sub_element(document, node, name, attributes)
     set_attributes(element, attributes)
   end
   return element
+end
+
+function methods:add_child(node)
+  if node.node.parent ~= ffi.NULL then
+    node:unlink()
+  end
+  local raw_added_node =
+    libxml2.xmlAddChild(self.node, node.node)
+end
+
+function methods:add_previous_sibling(node)
+  if not self.node and not node.node then
+    error("Already freed receiver node and added node")
+  elseif not self.node then
+    error("Already freed receiver node")
+  elseif not node.node then
+    error("Already freed added node")
+  end
+
+  local raw_added_node, was_freed =
+    libxml2.xmlAddPrevSibling(self.node, node.node)
+  if was_freed then
+    node.node = nil
+  end
+end
+
+function methods:append_sibling(node)
+  if not self.node and not node.node then
+    error("Already freed receiver node and appended node")
+  elseif not self.node then
+    error("Already freed receiver node")
+  elseif not node.node then
+    error("Already freed appended node")
+  end
+
+  local was_freed = libxml2.xmlAddSibling(self.node, node.node)
+  if was_freed then
+    node.node = nil
+  end
+end
+
+function methods:add_next_sibling(node)
+  if not self.node and not node.node then
+    error("Already freed receiver node and added node")
+  elseif not self.node then
+    error("Already freed receiver node")
+  elseif not node.node then
+    error("Already freed added node")
+  end
+
+  local was_freed =
+    libxml2.xmlAddNextSibling(self.node, node.node)
+  if was_freed then
+    node.node = nil
+  end
 end
 
 function methods:append_text(value)
@@ -338,6 +394,18 @@ end
 
 function methods:text()
   return self:content()
+end
+
+function methods:find_namespace(prefix, href)
+  local raw_namespace
+  if not prefix and href then
+    raw_namespace =
+      libxml2.xmlSearchNsByHref(self.document, self.node, href)
+  else
+    raw_namespace =
+      libxml2.xmlSearchNs(self.document, self.node, prefix)
+  end
+  return Namespace.new(self.document, raw_namespace)
 end
 
 -- For internal use

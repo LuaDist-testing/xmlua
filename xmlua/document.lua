@@ -9,10 +9,24 @@ local Serializable = require("xmlua.serializable")
 local Searchable = require("xmlua.searchable")
 
 
+local CDATASection
+local Comment
+local DocumentFragment
+local DocumentType
 local Element
+local EntityReference
+local Namespace
+local ProcessingInstruction
 
 function Document.lazy_load()
+  CDATASection = require("xmlua.cdata-section")
+  Comment = require("xmlua.comment")
+  DocumentFragment = require("xmlua.document-fragment")
+  DocumentType = require("xmlua.document-type")
   Element = require("xmlua.element")
+  EntityReference = require("xmlua.entity-reference")
+  Namespace = require("xmlua.namespace")
+  ProcessingInstruction = require("xmlua.processing-instruction")
 end
 
 local methods = {}
@@ -39,6 +53,65 @@ end
 
 function methods:encoding()
   return ffi.string(self.document.encoding)
+end
+
+function methods:create_cdata_section(data)
+  local raw_cdata_section_node =
+    libxml2.xmlNewCDataBlock(self.document,
+                             data,
+                             data:len())
+  return CDATASection.new(self.document, raw_cdata_section_node)
+end
+
+function methods:create_comment(data)
+  local raw_comment_node =
+    libxml2.xmlNewComment(data)
+  return Comment.new(self.document, raw_comment_node)
+end
+
+function methods:create_document_fragment()
+  local raw_document_fragment_node =
+    libxml2.xmlNewDocFragment(self.document)
+  return DocumentFragment.new(self.document,
+                              raw_document_fragment_node)
+end
+
+function methods:create_document_type(name, external_id, system_id)
+  local raw_document_type =
+    libxml2.xmlCreateIntSubset(self.document, name, external_id, system_id)
+  return DocumentType.new(self.document,
+                          raw_document_type)
+end
+
+function methods:get_internal_subset()
+  local raw_document_type =
+    libxml2.xmlGetIntSubset(self.document)
+  if raw_document_type ~= nil then
+    return DocumentType.new(self.document,
+                            raw_document_type)
+  else
+    return nil
+  end
+end
+
+function methods:add_entity_reference(name)
+  local raw_entity_reference =
+    libxml2.xmlNewReference(self.document, name)
+  return EntityReference.new(self.document,
+                             raw_entity_reference)
+end
+
+function methods:create_namespace(href, prefix)
+  local raw_namespace =
+    libxml2.xmlNewNs(self.node, href, prefix)
+  return Namespace.new(self.document, raw_namespace)
+end
+
+function methods:create_processing_instruction(name, content)
+  local raw_processing_instruction =
+    libxml2.xmlNewPI(name, content)
+  return ProcessingInstruction.new(self.document,
+                             raw_processing_instruction)
 end
 
 function methods:add_entity(entity_info)

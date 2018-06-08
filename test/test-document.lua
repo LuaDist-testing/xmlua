@@ -4,6 +4,116 @@ local ffi = require("ffi")
 
 TestDocument = {}
 
+function TestDocument.test_create_cdata_section()
+  local document = xmlua.XML.build({"root"})
+  local cdata_section_node =
+    document:create_cdata_section("This is <CDATA>")
+  root = document:root()
+  root:add_child(cdata_section_node)
+  luaunit.assertEquals(document:to_xml(),
+                       [=[
+<?xml version="1.0" encoding="UTF-8"?>
+<root><![CDATA[This is <CDATA>]]></root>
+]=]
+                       )
+end
+
+function TestDocument.test_create_comment()
+  local document = xmlua.XML.build({"root"})
+  local comment_node = document:create_comment("This is comment")
+  root = document:root()
+  root:add_child(comment_node)
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <!--This is comment-->
+</root>
+]])
+end
+
+function TestDocument.test_create_document_fragment()
+  local document = xmlua.XML.build({"root"})
+
+  local document_fragment = document:create_document_fragment()
+  local comment_node = document:create_comment("This is comment")
+  document_fragment:add_child(comment_node)
+
+  root = document:root()
+  root:add_child(document_fragment)
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <!--This is comment-->
+
+</root>
+]])
+end
+
+function TestDocument.test_create_document_type_public_id()
+  local document = xmlua.XML.build({})
+  local document_type =
+    document:create_document_type("TestDocumentDecl",
+                                  "//test/uri")
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE TestDocumentDecl PUBLIC "//test/uri" "">
+]])
+end
+
+function TestDocument.test_create_document_type_system_id()
+  local document = xmlua.XML.build({})
+  local document_type =
+    document:create_document_type("TestDocumentDecl",
+                                  nil,
+                                  "//system.dtd")
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE TestDocumentDecl SYSTEM "//system.dtd">
+]])
+end
+
+function TestDocument.test_add_entity_reference()
+  local document = xmlua.XML.build({})
+  local entity_reference = document:add_entity_reference("test_entity")
+  luaunit.assertEquals(entity_reference:name(),
+                       "test_entity")
+end
+
+function TestDocument.test_create_namespace()
+  local document = xmlua.XML.build({})
+  local namespace =
+    document:create_namespace("http://www.w3.org/1999/xhtml",
+                              "xhtml")
+  luaunit.assertEquals({
+                         namespace:href(),
+                         namespace:prefix()
+                       },
+                       {
+                         "http://www.w3.org/1999/xhtml",
+                         "xhtml"
+                       })
+end
+
+function TestDocument.test_create_processing_instruction()
+  local document = xmlua.XML.build({"root"})
+  local processing_instruction =
+    document:create_processing_instruction("xml-stylesheet",
+                                           "href=\"www.test.com/test-style.xsl\" type=\"text/xsl\"")
+  local root = document:root()
+  root:add_child(processing_instruction)
+  luaunit.assertEquals(document:to_xml(),
+                       [[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <?xml-stylesheet href="www.test.com/test-style.xsl" type="text/xsl"?>
+</root>
+]])
+end
+
 function TestDocument.test_add_entity()
   local xml = [[
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -113,3 +223,20 @@ function TestDocument.test_add_dtd_entity()
                        })
 end
 
+function TestDocument.test_get_dtd_internal_subset()
+  local xml = [[
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE root SYSTEM "./test/test.dtd">
+<root/>
+]]
+  local document = xmlua.XML.parse(xml)
+  local dtd = document:get_internal_subset()
+  luaunit.assertEquals({
+                         dtd:name(),
+                         dtd:system_id()
+                       },
+                       {
+                         "root",
+                         "./test/test.dtd"
+                       })
+end

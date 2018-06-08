@@ -232,6 +232,74 @@ parser:finish()
 This is test.
 ```
 
+### `create_cdata_section(content) -> [xmlua.CDATADection]` {#create_cdata_section}
+
+新しいcdataセクションノードを作成することができます。引数はcdataセクションノードの内容です。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.build({"root"})
+local cdata_section_node =
+  document:create_cdata_section("This is <CDATA>")
+root = document:root()
+root:add_child(cdata_section_node)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root><![CDATA[This is <CDATA>]]></root>
+end
+```
+
+### `create_comment(content) -> [xmlua.Comment]` {#create_comment}
+
+新しいコメントノードを作成することができます。引数はコメントノードの内容です。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.build({"root"})
+local comment_node =
+  document:create_comment("This is comment")
+root = document:root()
+root:add_child(comment_node)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <!--This is comment-->
+--</root>
+end
+```
+
+### `create_document_fragment() -> [xmlua.DocumentFragment]` {#create_document_fragment}
+
+新しくドキュメントフラグメントノードを作成できます。
+
+例：
+
+```lua
+local xmlua = require("xmlua")
+
+local document = xmlua.XML.build({"root"})
+local document_fragment = document:create_document_fragment()
+local comment_node =
+  document:create_comment("This is comment")
+document_fragment:add_child(comment_node)
+
+root = document:root()
+root:add_child(comment_node)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <!--This is comment-->
+--
+--</root>
+end
+```
+
 ## 参照
 
   * [`xmlua.HTML`][html]: HTMLをパースするクラスです。

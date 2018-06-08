@@ -282,10 +282,37 @@ void xmlFreeNs(xmlNsPtr cur);
 void xmlSetNs(xmlNodePtr node, xmlNsPtr ns);
 xmlDocPtr xmlNewDoc(const xmlChar *version);
 xmlNodePtr xmlDocSetRootElement(xmlDocPtr doc, xmlNodePtr root);
+xmlDtdPtr xmlNewDtd(xmlDocPtr doc,
+		    const xmlChar *name,
+		    const xmlChar *ExternalID,
+		    const xmlChar *SystemID);
+xmlDtdPtr xmlCreateIntSubset(xmlDocPtr doc,
+	                     const xmlChar * name,
+			     const xmlChar * ExternalID,
+			     const xmlChar * SystemID);
+xmlDtdPtr xmlGetIntSubset(const xmlDoc * doc);
+void xmlFreeDtd(xmlDtdPtr cur);
 xmlNodePtr xmlNewNode(xmlNsPtr ns, const xmlChar *name);
 xmlNodePtr xmlNewText(const xmlChar *content);
+xmlNodePtr xmlNewCDataBlock(xmlDocPtr doc,
+			    const xmlChar *content,
+			    int len);
+xmlNodePtr xmlNewComment(const xmlChar *content);
+xmlNodePtr xmlNewDocFragment(xmlDocPtr doc);
+xmlNodePtr xmlNewReference(const xmlDoc *doc,
+			   const xmlChar *name);
+xmlNodePtr xmlNewPI(const xmlChar *name,
+		    const xmlChar *content);
+
 xmlNodePtr xmlAddPrevSibling(xmlNodePtr cur, xmlNodePtr elem);
+xmlNodePtr xmlAddSibling(xmlNodePtr cur, xmlNodePtr elem);
+xmlNodePtr xmlAddNextSibling(xmlNodePtr cur, xmlNodePtr elem);
 xmlNodePtr xmlAddChild(xmlNodePtr parent, xmlNodePtr cur);
+
+int xmlTextConcat(xmlNodePtr node,
+                  const xmlChar *content,
+		  int len);
+xmlNodePtr xmlTextMerge(xmlNodePtr first, xmlNodePtr second);
 
 xmlNsPtr xmlSearchNs(xmlDocPtr doc, xmlNodePtr node, const xmlChar *nameSpace);
 xmlNsPtr xmlSearchNsByHref(xmlDocPtr doc, xmlNodePtr node, const xmlChar *href);
@@ -306,7 +333,9 @@ xmlAttrPtr xmlNewProp(xmlNodePtr node,
 int xmlUnsetNsProp(xmlNodePtr node, xmlNsPtr ns, const xmlChar *name);
 int xmlUnsetProp(xmlNodePtr node, const xmlChar *name);
 
+void xmlNodeSetContent(xmlNodePtr cur, const xmlChar *content);
 xmlChar *xmlNodeGetContent(const xmlNode *cur);
+xmlNodePtr xmlReplaceNode(xmlNodePtr old, xmlNodePtr cur);
 xmlChar *xmlGetNodePath(const xmlNode *node);
 
 void xmlFreeNode(xmlNodePtr cur);

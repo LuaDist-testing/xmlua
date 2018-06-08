@@ -2,7 +2,7 @@
 
 -- -*- lua -*-
 
-local package_version = "1.1.1"
+local package_version = "1.1.2"
 
 package = "xmlua"
 version = package_version .. "-0"
@@ -31,7 +31,7 @@ external_dependencies = {
 }
 -- LuaDist source
 source = {
-  tag = "1.1.1-0",
+  tag = "1.1.2-0",
   url = "git://github.com/LuaDist-testing/xmlua.git"
 }
 -- Original source
@@ -43,9 +43,19 @@ build = {
   type = "builtin",
   modules = {
     ["xmlua"] = "xmlua.lua",
+    ["xmlua.attribute"] = "xmlua/attribute.lua",
+    ["xmlua.attribute-declaration"] = "xmlua/attribute-declaration.lua",
+    ["xmlua.cdata-section"] = "xmlua/cdata-section.lua",
     ["xmlua.converter"] = "xmlua/converter.lua",
+    ["xmlua.comment"] = "xmlua/comment.lua",
     ["xmlua.document"] = "xmlua/document.lua",
+    ["xmlua.document-fragment"] = "xmlua/document-fragment.lua",
+    ["xmlua.document-type"] = "xmlua/document-type.lua",
     ["xmlua.element"] = "xmlua/element.lua",
+    ["xmlua.element-declaration"] = "xmlua/element-declaration.lua",
+    ["xmlua.entity"] = "xmlua/entity.lua",
+    ["xmlua.entity-declaration"] = "xmlua/entity-declaration.lua",
+    ["xmlua.entity-reference"] = "xmlua/entity-reference.lua",
     ["xmlua.html"] = "xmlua/html.lua",
     ["xmlua.html-sax-parser"] = "xmlua/html-sax-parser.lua",
     ["xmlua.libxml2"] = "xmlua/libxml2.lua",
@@ -64,8 +74,12 @@ build = {
     ["xmlua.libxml2.xmlsave"] = "xmlua/libxml2/xmlsave.lua",
     ["xmlua.libxml2.xmlstring"] = "xmlua/libxml2/xmlstring.lua",
     ["xmlua.libxml2.xpath"] = "xmlua/libxml2/xpath.lua",
+    ["xmlua.namespace"] = "xmlua/namespace.lua",
+    ["xmlua.namespace-declaration"] = "xmlua/namespace-declaration.lua",
     ["xmlua.node"] = "xmlua/node.lua",
     ["xmlua.node-set"] = "xmlua/node-set.lua",
+    ["xmlua.notation-declaration"] = "xmlua/notation-declaration.lua",
+    ["xmlua.processing-instruction"] = "xmlua/processing-instruction.lua",
     ["xmlua.searchable"] = "xmlua/searchable.lua",
     ["xmlua.serializable"] = "xmlua/serializable.lua",
     ["xmlua.text"] = "xmlua/text.lua",

@@ -233,9 +233,129 @@ print(document:to_xml())
 -- </xhtml:html>
 ```
 
+### `append_text(text_content) -> xmlua.Text` {#append-text}
+
+Make an text element with the specified text content and append it the last child element of `xmlua.Element` of the receiver.
+It returns appended text element.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+--append text node.
+local document = xmlua.XML.parse("<root/>")
+local root = document:root()
+local child = root:append_text("This is Text element.")
+print(child:text())
+-- This is Text element.
+print(document:to_xml())
+-- <?xml version="1.0" encoding="UTF-8"?>
+-- <root>This is Text element.</root>
+```
+
+### `add_child(child_node) -> void` {#add_child}
+
+Add a new node to receiver, at the end of child.
+If new node is attribute node, it is added into propertoes instead of children.
+
+Example:
+
+```lua
+local xmlua = require("xmlua")
+--append CDATASection node.
+local document = xmlua.XML.build({"root"})
+local cdata_section_node =
+  document:create_cdata_section("This is <CDATA>")
+local root = document:root()
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root><![CDATA[This is <CDATA>]]></root>
+```
+
+### `add_previous_sibling(node) -> void` {#add_previous_sibling}
+
+Add a new node as the previous sibling receiver.
+If the new node was already inserted in a document it is first unlinked from its existing context.
+If the new node is ATTRIBUTE, it is added into properties instead of sibling.
+
+Example:
+
+```lua
+local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child/>
+</root>
+]])
+
+--append comment node.
+local root = document:root()
+local comment_node =
+  document:create_comment("This is comment!")
+local child = root:children()[1]
+child:add_previous_sibling(comment_node)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <!--This is comment!--><child/>
+--</root>
+```
+
+### `append_sibling(node) -> void` {#append_sibling}
+
+Add a new node to a receiver as the end of a sibling.
+If the new node was already inserted in a document it is first unlinked from its existing context.
+
+Example:
+
+```lua
+local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child/>
+</root>
+]])
+local root = document:root()
+local comment_node =
+  document:create_comment("This is comment!")
+local child = root:children()[1]
+child:append_sibling(comment_node)
+print(document:to_xml())
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <child/>
+--<!--This is comment!--></root>
+```
+
+### `add_next_sibling(node) -> void` {#add_next_sibling}
+
+Add a new node to a receiver as the next sibling.
+If the new node was already inserted in a document it is first unlinked from its existing context.
+
+Example:
+
+```lua
+local document = xmlua.XML.parse([[
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <child/>
+</root>
+]])
+local root = document:root()
+local comment_node =
+  document:create_comment("This is comment!")
+local child = root:children()[1]
+child:add_next_sibling(comment_node)
+print(document:to_xml()
+--<?xml version="1.0" encoding="UTF-8"?>
+--<root>
+--  <child/><!--This is comment!-->
+--</root>
+```
+
 ### `unlink() -> xmlua.Element` {#unlink}
 
-It remove reciver from document tree.
+It remove receiver from document tree.
 
 Example:
 
@@ -596,6 +716,63 @@ print(subs[3]:to_xml())
 -- <sub3/>
 ```
 
+### `find_namespace(prefix, href) -> [xmlua.Namespace]` {#find_namespace}
+
+You can search namespace registered for a document.
+If a prefix is a nil and href is exist, this method search namespace by href.
+IF a prefix and href is exist, this method search namespace by prefix.
+If prefix and href are nil, this method search default namespace.
+It returns found namespace or nil.
+If a return value is a nil, the search of a namespace is a failure.
+
+Example:
+
+```lua
+--search by prefix
+local xmlua = require("xmlua")
+
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+local namespace = root:find_namespace("xhtml")
+print(namespace:prefix()) --"xhtml"
+print(namespace:href()) --"http://www.w3.org/1999/xhtml"
+```
+
+```lua
+--search by href
+local xmlua = require("xmlua")
+
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<xhtml:html xmlns:xhtml="http://www.w3.org/1999/xhtml"/>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+local namespace = root:find_namespace(nil, "http://www.w3.org/1999/xhtml")
+print(namespace:prefix()) --"xhtml"
+print(namespace:href()) --"http://www.w3.org/1999/xhtml"
+```
+
+```lua
+--search of default namespace
+local xmlua = require("xmlua")
+
+local xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<test xmlns='http://www.test.org/xhtml'
+      xmlns:xhtml='http://www.w3.org/1999/xhtml'>
+</test>
+]]
+local document = xmlua.XML.parse(xml)
+local root = document:root()
+local namespace = root:find_namespace()
+print(namespace:href()) --"http://www.test.org/xhtml"
+```
+
 ## See also
 
   * [`xmlua.HTML`][html]: The class for parsing HTML.
@@ -603,6 +780,8 @@ print(subs[3]:to_xml())
   * [`xmlua.XML`][xml]: The class for parsing XML.
 
   * [`xmlua.Document`][document]: The class for HTML document and XML document.
+
+  * [`xmlua.Namespace`][namespace]: The class for namespace nodes.
 
   * [`xmlua.NodeSet`][node-set]: The class for multiple nodes.
 
@@ -624,3 +803,5 @@ print(subs[3]:to_xml())
 [serializable]:serializable.html
 
 [searchable]:searchable.html
+
+[namespace]:namespace.html

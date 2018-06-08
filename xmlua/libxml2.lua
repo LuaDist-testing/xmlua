@@ -21,7 +21,6 @@ local loaded, xml2 = pcall(ffi.load, "xml2")
 if not loaded then
   xml2 = ffi.load("libxml2.so.2")
 end
-
 local function __xmlParserVersionIsAvailable()
   local success, err = pcall(function()
       local func = xml2.__xmlParserVersion
@@ -230,7 +229,10 @@ end
 
 function libxml2.xmlNewNs(node, uri, prefix)
   local new_namespace = xml2.xmlNewNs(node, uri, prefix)
-  return new_namespace
+  if new_namespace == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(new_namespace, libxml2.xmlFreeNs)
 end
 
 function libxml2.xmlFreeNs(namespace)
@@ -263,12 +265,147 @@ function libxml2.xmlNewText(content)
   return xml2.xmlNewText(content)
 end
 
+function libxml2.xmlTextConcat(node,
+                               content,
+                               content_length)
+  local status = xml2.xmlTextConcat(node,
+                                    content,
+                                    content_length)
+  return status == 0
+end
+
+function libxml2.xmlTextMerge(merged_node, merge_node)
+  local was_freed = (merged_node.type == ffi.C.XML_TEXT_NODE
+                     and merge_node.type == ffi.C.XML_TEXT_NODE
+                     and merged_node.name == merge_node.name)
+  xml2.xmlTextMerge(merged_node, merge_node)
+  if was_freed then
+    ffi.gc(merge_node, nil)
+  end
+  return was_freed
+end
+
+function libxml2.xmlNewCDataBlock(document,
+                                  content,
+                                  content_length)
+  local new_cdata_block =
+    xml2.xmlNewCDataBlock(document,
+                          content,
+                          content_length)
+  if new_cdata_block == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(new_cdata_block, libxml2.xmlFreeNode)
+end
+
+function libxml2.xmlNewComment(content)
+  local new_comment =
+    xml2.xmlNewComment(content)
+  if new_comment == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(new_comment, libxml2.xmlFreeNode)
+end
+
+function libxml2.xmlCreateIntSubset(document,
+                                    name,
+                                    external_id,
+                                    system_id)
+  local new_dtd =
+    xml2.xmlCreateIntSubset(document,
+                            name,
+                            external_id,
+                            system_id)
+  if new_dtd == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(new_dtd, libxml2.xmlFreeDtd)
+end
+
+function libxml2.xmlGetIntSubset(document)
+  local raw_internal_subset
+    = xml2.xmlGetIntSubset(document)
+  if raw_internal_subset == ffi.NULL then
+    return nil
+  end
+  return raw_internal_subset
+end
+
+function libxml2.xmlFreeDtd(dtd)
+  xml2.xmlFreeDtd(dtd)
+end
+
+function libxml2.xmlNewDocFragment(document)
+  local new_document_fragment =
+    xml2.xmlNewDocFragment(document)
+  if new_document_fragment == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(new_document_fragment,
+                libxml2.xmlFreeNode)
+end
+
+function libxml2.xmlNewReference(document, name)
+  local new_reference =
+    xml2.xmlNewReference(document, name)
+  if new_reference == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(new_reference,
+                libxml2.xmlFreeNode)
+end
+
+function libxml2.xmlNewPI(name, content)
+  local new_pi = xml2.xmlNewPI(name, content)
+  if new_pi == ffi.NULL then
+    return nil
+  end
+  return ffi.gc(new_pi, libxml2.xmlFreeNode)
+end
+
 function libxml2.xmlAddPrevSibling(sibling, new_sibling)
+  local was_freed = (sibling.type == ffi.C.XML_TEXT_NODE
+                     and new_sibling.type == ffi.C.XML_TEXT_NODE)
+                     or
+                     (sibling.type == ffi.C.XML_TEXT_NODE
+                      and sibling.prev ~= ffi.NULL
+                      and sibling.prev.type == ffi.C.XML_TEXT_NODE
+                      and sibling.name == sibling.prev.name)
   local new_node = xml2.xmlAddPrevSibling(sibling, new_sibling)
   if new_node == ffi.NULL then
     new_node = nil
+  else
+    if was_freed then
+      ffi.gc(new_sibling, nil)
+    end
   end
-  return new_node
+  return new_node, was_freed
+end
+
+function libxml2.xmlAddSibling(sibling, new_sibling)
+  local was_freed = (sibling.type == ffi.C.XML_TEXT_NODE
+                     and new_sibling.type == ffi.C.XML_TEXT_NODE
+                     and sibling.name == new_sibling.name)
+  local new_node = xml2.xmlAddSibling(sibling, new_sibling)
+  if new_node ~= ffi.NULL and was_freed then
+    ffi.gc(new_sibling, nil)
+  end
+  return was_freed
+end
+
+function libxml2.xmlAddNextSibling(sibling, new_sibling)
+  local was_freed = (sibling.type == ffi.C.XML_TEXT_NODE
+                     and new_sibling.type == ffi.C.XML_TEXT_NODE)
+                     or
+                     (sibling.type == ffi.C.XML_TEXT_NODE
+                      and sibling.next ~= ffi.NULL
+                      and sibling.next.type == ffi.C.XML_TEXT_NODE
+                      and sibling.name == sibling.next.name)
+  local new_node = xml2.xmlAddNextSibling(sibling, new_sibling)
+  if new_node ~= ffi.NULL and was_freed then
+    ffi.gc(new_sibling, nil)
+  end
+  return was_freed
 end
 
 function libxml2.xmlAddChild(parent, child)
@@ -330,7 +467,7 @@ function libxml2.xmlNewNsProp(node, namespace, name, value)
 end
 
 function libxml2.xmlNewProp(node, name, value)
-  xml2.xmlNewProp(node, name, value)
+  return xml2.xmlNewProp(node, name, value)
 end
 
 function libxml2.xmlUnsetNsProp(node, namespace, name)
@@ -341,6 +478,10 @@ function libxml2.xmlUnsetProp(node, name)
   xml2.xmlUnsetProp(node, name)
 end
 
+function libxml2.xmlNodeSetContent(node, content)
+  xml2.xmlNodeSetContent(node, content)
+  return
+end
 
 function libxml2.xmlNodeGetContent(node)
   local content = xml2.xmlNodeGetContent(node)
@@ -350,6 +491,11 @@ function libxml2.xmlNodeGetContent(node)
   local lua_string = ffi.string(content)
   libxml2.xmlFree(content)
   return lua_string
+end
+
+function libxml2.xmlReplaceNode(old_node, new_node)
+  xml2.xmlReplaceNode(old_node, new_node)
+  return
 end
 
 function libxml2.xmlGetNodePath(node)
@@ -391,13 +537,16 @@ end
 
 local function error_ignore(user_data, err)
 end
+jit.off(c_error_ignore, true)
+local c_error_ignore = ffi.cast("xmlStructuredErrorFunc", error_ignore)
+ffi.gc(c_error_ignore, function(callback) callback:free() end)
 
 function libxml2.xmlXPathNewContext(document)
   local context = xml2.xmlXPathNewContext(document)
   if context == ffi.NULL then
     return nil
   end
-  context.error = error_ignore
+  context.error = c_error_ignore
   return ffi.gc(context, xml2.xmlXPathFreeContext)
 end
 
